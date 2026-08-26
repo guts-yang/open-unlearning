@@ -154,39 +154,49 @@ python setup_data.py --help
 建议：
 
 - 系统盘只放系统；`$HF_HOME`、仓库、`saves/` 全部在 **250GB 数据盘**
-- 先只跑 **1B + 一种方法 + forget10**
+- 先只跑 **1B + SimNPO + forget10**（论文综合排名第一），不要一上来跑全量脚本
 - 需要对照 7B 表时再下 Llama-2 / 8B，并随时删旧 `saves/unlearn/*`
 
 若 `saves/` 仍写到仓库内，可在命令里覆盖：`paths.output_dir=$DATA/saves/unlearn/YOUR_TASK`。
 
 ---
 
-## 六、推荐实验顺序（按这台 A800）
+## 六、推荐实验顺序（优秀方法优先）
 
-默认 accelerate 已是 **2 进程 DeepSpeed ZeRO-3**，与双卡匹配，**不必改卡数**。脚本里 `per_device_train_batch_size=4`、`gradient_accumulation_steps=4`、2 卡 → 有效 batch **32**（与 `docs/repro.md` 的有效 32 一致；原文「每卡 8」和脚本「每卡 4」表述不同，**以本仓库脚本为准**）。
+默认 accelerate 已是 **2 进程 DeepSpeed ZeRO-3**，与双卡匹配，**不必改卡数**。脚本里 `per_device_train_batch_size=4`、`gradient_accumulation_steps=4`、2 卡 → 有效 batch **32**（以本仓库脚本为准）。
 
-### 1）冒烟：TOFU 1B + GradAscent + forget10
+**排序依据：** OpenUnlearning 论文 Table 3（TOFU 上调参后，记忆 / 隐私 / 效用的调和平均）。**从高到低复现**，朴素基线放到最后。
+
+| 优先级 | 方法 | 论文 Agg. | 本仓库怎么跑 | 说明 |
+|--------|------|-----------|--------------|------|
+| 1 | **SimNPO** | 0.53（第一） | `trainer=SimNPO` | 效用几乎不掉，综合最好；默认 yaml 已带论文常用 `beta=4.5` |
+| 2 | **RMU** | 0.52 | `trainer=RMU` | 遗忘强，效用往往掉；层号等要按模型核对 |
+| 3 | **UNDIAL** | 0.42 | `trainer=UNDIAL` | 已注册；社区 `community/methods/UNDIAL/run.sh` 含调参网格 |
+| 4 | **AltPO** | 0.15 | `community/methods/AltPO/run.sh` | 不在 `TRAINER_REGISTRY`，走社区脚本 |
+| 5 | **NPO** | 0.15 | `trainer=NPO` | 默认超参下 TOFU 的 `forget_quality` 往往最好（见 [复现结果](./repro.md)） |
+| 6 | **IdkDPO** | 0.14 | `trainer=DPO` + `experiment=unlearn/tofu/idk.yaml` | 需 `setup_data.py --idk` |
+| 7 | **GradDiff** | 9e-3 | `trainer=GradDiff` | 容易过遗忘 |
+| 8 | **GradAscent** | 未进该表 | `trainer=GradAscent` | 朴素基线，forget10 上常把 utility 打到 0 |
+
+论文也写了：若**不把隐私算进综合分**、只看记忆+效用，GradDiff 会排到前面——那是过遗忘，不是推荐优先复现的「好方法」。
+
+PDU / SatImp / WGA / CE-U 未进入 Table 3；核心方法跑完再按社区 README 补。
+
+> **默认超参 vs 论文调参：** `docs/repro.md` 未调参时，TOFU forget10 上 **NPO** 的 forget_quality 明显高于 SimNPO。若目标是「对齐未调参表」可把 NPO 提前；若目标是「复现论文认定的最强方法」，仍从 **SimNPO** 开始。
+
+### 1）先复现 SimNPO（TOFU 1B + forget10）
 
 ```bash
 cd $DATA/open-unlearning
-conda activate unlearning   # 或你的 venv
+conda activate unlearning
 
-python src/train.py --config-name=unlearn.yaml experiment=unlearn/tofu/default \
-  forget_split=forget10 retain_split=retain90 trainer=GradAscent \
-  task_name=SMOKE_tofu_1B_GA_forget10 \
-  retain_logs_path=saves/eval/tofu_Llama-3.2-1B-Instruct_retain90/TOFU_EVAL.json
-```
-
-双卡与脚本一致时：
-
-```bash
 export MASTER_PORT=$(python -c "import socket; s=socket.socket(); s.bind(('', 0)); print(s.getsockname()[1]); s.close()")
 
 CUDA_VISIBLE_DEVICES=0,1 accelerate launch \
   --config_file configs/accelerate/default_config.yaml --main_process_port $MASTER_PORT \
   src/train.py --config-name=unlearn.yaml experiment=unlearn/tofu/default \
-  trainer=GradAscent \
-  task_name=SMOKE_tofu_1B_GA_forget10 \
+  trainer=SimNPO \
+  task_name=tofu_1B_SimNPO_forget10 \
   model=Llama-3.2-1B-Instruct \
   forget_split=forget10 retain_split=retain90 \
   model.model_args.pretrained_model_name_or_path=open-unlearning/tofu_Llama-3.2-1B-Instruct_full \
@@ -197,50 +207,72 @@ CUDA_VISIBLE_DEVICES=0,1 accelerate launch \
   trainer.args.gradient_checkpointing=true
 ```
 
-**多卡训练过程中不能跑自定义 TOFU eval。** 训完后单卡评测：
+**多卡训练过程中不能跑自定义 TOFU eval。** 训完后单卡评测（把 `SimNPO` / `task_name` 换成后面各方法即可）：
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python src/eval.py experiment=eval/tofu/default.yaml \
   forget_split=forget10 holdout_split=holdout10 \
   model=Llama-3.2-1B-Instruct \
-  task_name=SMOKE_tofu_1B_GA_forget10 \
-  model.model_args.pretrained_model_name_or_path=saves/unlearn/SMOKE_tofu_1B_GA_forget10 \
-  paths.output_dir=saves/unlearn/SMOKE_tofu_1B_GA_forget10/evals \
+  task_name=tofu_1B_SimNPO_forget10 \
+  model.model_args.pretrained_model_name_or_path=saves/unlearn/tofu_1B_SimNPO_forget10 \
+  paths.output_dir=saves/unlearn/tofu_1B_SimNPO_forget10/evals \
   retain_logs_path=saves/eval/tofu_Llama-3.2-1B-Instruct_retain90/TOFU_EVAL.json
 ```
 
-对照 [复现结果](./repro.md) 里 **Llama-3.2-1B-Instruct / forget10 / GradAscent** 的量级（官方表上 utility 会被打到 0、forget_quality 极小）。能出 `TOFU_SUMMARY.json` 即流水线通了。
+对照 [复现结果](./repro.md) 里 **Llama-3.2-1B-Instruct / forget10 / SimNPO** 的量级。能出 `TOFU_SUMMARY.json` 即流水线通了。
 
-### 2）同一设置换方法
+### 2）按优先级接着换方法（同一 1B / forget10）
 
-在冒烟命令上改 `trainer=`：
-
-| 方法 | 额外准备 |
-|------|----------|
-| `GradDiff` | 无 |
-| `NPO` / `SimNPO` | 会再拷一份参考模型，A800 80GB 仍宽裕 |
-| `DPO` | `experiment=unlearn/tofu/idk.yaml`，且已 `setup_data.py --idk` |
-| `RMU` | 无额外数据；对超参更敏感 |
-
-### 3）再上 3B / 8B 或 MUSE
-
-- 3B/8B：改 `model=Llama-3.2-3B-Instruct` 或 `Llama-3.1-8B-Instruct`，以及对应 `tofu_${model}_full` 与 `retain_logs_path`。
-- MUSE：`bash scripts/muse_unlearn.sh` 前先确认 `saves/eval/muse_*_retrain/MUSE_EVAL.json` 存在；target 为 `muse-bench/MUSE-{News,Books}_target`。
-
-全量基线（磁盘和时间都很大）：
+把上面训练命令里的 `trainer=` 和 `task_name=` 按表替换：
 
 ```bash
-bash scripts/tofu_unlearn.sh
+# 2. RMU
+trainer=RMU  task_name=tofu_1B_RMU_forget10
+
+# 3. UNDIAL
+trainer=UNDIAL  task_name=tofu_1B_UNDIAL_forget10
+
+# 4. AltPO（社区脚本，含调参网格）
+bash community/methods/AltPO/run.sh
+
+# 5. NPO
+trainer=NPO  task_name=tofu_1B_NPO_forget10
+
+# 6. IdkDPO（先 python setup_data.py --idk）
+# 并把 experiment=unlearn/tofu/default 改成：
+experiment=unlearn/tofu/idk.yaml trainer=DPO task_name=tofu_1B_DPO_forget10
+
+# 7. GradDiff
+trainer=GradDiff  task_name=tofu_1B_GradDiff_forget10
+
+# 8. GradAscent（最后做基线）
+trainer=GradAscent  task_name=tofu_1B_GA_forget10
+```
+
+RMU 的 `module_regex` 默认指向 `model.layers.7`，1B/3B/8B 层数不同，换模型时要改。NPO 会再拷一份参考模型，双卡 A800 80GB 一般够。
+
+### 3）同一最强方法再放大规模
+
+SimNPO（以及需要时的 RMU / NPO）在 1B forget10 跑通后：
+
+- 同一方法：`forget05` / `forget01`（`retain_logs_path` 改成 retain95 / retain99）
+- 再换 `model=Llama-3.2-3B-Instruct` 或 `Llama-3.1-8B-Instruct`，以及对应 `tofu_${model}_full`
+- MUSE：确认 `saves/eval/muse_*_retrain/MUSE_EVAL.json` 后，优先 `trainer=SimNPO` / `NPO`，`experiment=unlearn/muse/default`，`data_split=News` 或 `Books`
+
+全量循环磁盘很大，不要整份跑：
+
+```bash
+bash scripts/tofu_unlearn.sh    # 内含 GA/GradDiff/NPO/DPO/RMU，无 SimNPO
 bash scripts/muse_unlearn.sh
 ```
 
-建议改脚本，先注释掉不需要的 `models` / `trainers` / `splits` 循环。
+`tofu_unlearn.sh` **没有 SimNPO**。要复现论文第一名，用本节命令或自己把 `SimNPO` 加进脚本循环。
 
 ---
 
 ## 七、方法与基准清单（复现前选范围）
 
-代码里已注册的 trainer（见 `src/trainer/__init__.py`）：GradAscent、GradDiff、NPO、DPO、SimNPO、RMU、UNDIAL、CEU、SatImp、WGA、PDU。AltPO 在 `community/methods/AltPO/`。
+复现顺序见上一节（SimNPO → RMU → UNDIAL → … → GradAscent）。已注册 trainer 见 `src/trainer/__init__.py`；AltPO 仅在 `community/methods/AltPO/`。
 
 | 想复现 | 最少准备 |
 |--------|----------|
@@ -261,7 +293,7 @@ bash scripts/muse_unlearn.sh
 | flash-attn 编译失败 | 去掉 `attn_implementation`，或换与 CUDA 匹配的预编译轮子 |
 | DeepSpeed / bitsandbytes 报错 | 不要混用镜像 torch 2.8 与钉死的 2.4.1 生态 |
 | 多卡训练里 eval 被跳过 | 属预期；训完单卡 `src/eval.py` |
-| NPO OOM | A800 80GB 一般够；若仍 OOM，减小 `per_device_train_batch_size` 并加大 `gradient_accumulation_steps`，保持有效 batch 32 |
+| NPO / SimNPO OOM | A800 80GB 一般够；若仍 OOM，减小 `per_device_train_batch_size` 并加大 `gradient_accumulation_steps`，保持有效 batch 32 |
 | 数字和表对不齐 | 换卡、换 torch、单卡都会漂；先保证有效 batch、epoch、lr 与脚本一致 |
 
 ---
@@ -274,5 +306,5 @@ bash scripts/muse_unlearn.sh
 - [ ] `flash-attn` 已装，或已准备好去掉 flash attention 的命令
 - [ ] `python setup_data.py --eval_logs`（DPO 再加 `--idk`）
 - [ ] Hub 能下 `open-unlearning/tofu_Llama-3.2-1B-Instruct_full`
-- [ ] 先完成 1B GradAscent forget10 训练 + 单卡评测
+- [ ] 先完成 1B **SimNPO** forget10 训练 + 单卡评测，再按论文排名做 RMU → UNDIAL → … → GradAscent
 - [ ] 全量脚本前估算磁盘；按需删减 `scripts/tofu_unlearn.sh` 循环

@@ -16,6 +16,7 @@
 | [组件扩展](./components.md) | [`docs/components.md`](../components.md) |
 | [Hydra 用法](./hydra.md) | [`docs/hydra.md`](../hydra.md) |
 | [复现结果](./repro.md) | [`docs/repro.md`](../repro.md) |
+| [复现准备（A800）](./reproduce-prep.md) | 本机/云主机实验清单（无英文对应页） |
 | [贡献指南](./contributing.md) | [`docs/contributing.md`](../contributing.md) |
 | [文献与链接](./links.md) | [`docs/links.md`](../links.md) |
 

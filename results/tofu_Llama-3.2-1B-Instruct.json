@@ -46,6 +46,21 @@
         "privleak": -93.7316515002763,
         "extraction_strength": 0.045104829004488686
       }
+    },
+    {
+      "method": "AltPO",
+      "forget_split": "forget10",
+      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_AltPO_forget10",
+      "updated_at": "2026-08-28T10:51:09+08:00",
+      "metrics": {
+        "forget_quality": 6.392505006995772e-06,
+        "model_utility": 0.5345461649210134,
+        "forget_truth_ratio": 0.6152917762814165,
+        "forget_Q_A_Prob": 0.5077734375,
+        "forget_Q_A_ROUGE": 0.4071209266351947,
+        "privleak": -93.33532423423938,
+        "extraction_strength": 0.1465160583588852
+      }
     }
   ]
 }

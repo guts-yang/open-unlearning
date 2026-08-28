@@ -2,7 +2,7 @@
 
 本机复现结果（动态表）。同一方法同一 forget split 会被覆盖更新。
 
-更新时间：2026-08-28T10:19:03+08:00
+更新时间：2026-08-28T10:51:09+08:00
 
 ## 本机指标
 
@@ -11,6 +11,7 @@
 | SimNPO | forget10 | 2.78e-16 | 0.5800 | 0.5177 | 0.5855 | 0.4789 | -97.7850 | 0.1812 |
 | RMU | forget10 | 4.24e-17 | 0.5853 | 0.7718 | 9.02e-05 | 0.0396 | 57.8010 | 0.0325 |
 | UNDIAL | forget10 | 6.16e-18 | 0.5655 | 0.5617 | 0.2566 | 0.3377 | -93.7317 | 0.0451 |
+| AltPO | forget10 | 6.39e-06 | 0.5345 | 0.6153 | 0.5078 | 0.4071 | -93.3353 | 0.1465 |
 
 FQ = forget_quality，MU = model_utility，TR = forget_truth_ratio，ES = extraction_strength。
 
@@ -23,6 +24,7 @@ FQ = forget_quality，MU = model_utility，TR = forget_truth_ratio，ES = extrac
 | SimNPO | forget10 | 2.47e-203 | 0.5400 | 1.07e-05 | 2.78e-16 | 0.5800 | 0.5177 |
 | RMU | forget10 | 3.15e-15 | 0.5900 | 0.7600 | 4.24e-17 | 0.5853 | 0.7718 |
 | UNDIAL | forget10 | — | — | — | 6.16e-18 | 0.5655 | 0.5617 |
+| AltPO | forget10 | — | — | — | 6.39e-06 | 0.5345 | 0.6153 |
 
 ## 参照 / SOTA（TOFU 1B · forget10）
 

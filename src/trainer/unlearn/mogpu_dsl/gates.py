@@ -81,7 +81,11 @@ def evaluate_loss(
     return _loss(spec, delta_forget, delta_retain)
 
 
-def _verify_gradients(spec: CandidateSpec) -> None:
+def probe_action_evidence(spec: CandidateSpec) -> dict[str, float]:
+    """CPU local-action probe used by SAGE F1; never runs the 1B trainer."""
+    forget_actions = []
+    retain_actions = []
+    norms = []
     for retain_value in (-1.0, -0.1, 0.0, 0.1, 1.0):
         forget = torch.tensor([-0.5, 0.0, 0.5], dtype=torch.float64, requires_grad=True)
         retain = torch.full_like(forget, retain_value, requires_grad=True)
@@ -92,7 +96,21 @@ def _verify_gradients(spec: CandidateSpec) -> None:
             or not torch.isfinite(grad_retain).all()
         ):
             raise ValueError("MOGP-U candidate has non-finite gradients")
-        if torch.any(grad_forget < -1e-10):
-            raise ValueError("MOGP-U candidate violates forget gradient direction")
-        if torch.any(retain * grad_retain < -1e-10):
-            raise ValueError("MOGP-U candidate violates retain gradient direction")
+        forget_actions.append(grad_forget.min().detach().item())
+        retain_actions.append((retain * grad_retain).min().detach().item())
+        norms.append((grad_forget.norm() + grad_retain.norm()).detach().item())
+    return {
+        "local_forget_action": min(forget_actions),
+        "local_retain_action": min(retain_actions),
+        "gradient_norm": max(norms),
+    }
+
+
+def _verify_gradients(spec: CandidateSpec) -> None:
+    evidence = probe_action_evidence(spec)
+    if evidence["local_forget_action"] < -1e-10:
+        raise ValueError("MOGP-U candidate violates forget gradient direction")
+    if evidence["local_retain_action"] < -1e-10:
+        raise ValueError("MOGP-U candidate violates retain gradient direction")
+    if evidence["gradient_norm"] <= 0:
+        raise ValueError("MOGP-U candidate has non-finite gradients")

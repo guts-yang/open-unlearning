@@ -8,9 +8,15 @@ from mogpu.search.records import CandidateRecord
 from trainer.unlearn.mogpu_dsl.gates import validate_candidate
 
 
+def spec_from_record(record: CandidateRecord):
+    from trainer.unlearn.mogpu_dsl.ast import CandidateSpec
+
+    return CandidateSpec.from_dict(record.canonical_spec)
+
+
 def f0(record: CandidateRecord) -> CandidateRecord:
     try:
-        validate_candidate(record.payload["spec"])
+        validate_candidate(spec_from_record(record))
         record.stage, record.status, record.constraint_violation = "F0", "passed", 0.0
     except (KeyError, ValueError, TypeError) as error:
         record.stage, record.status, record.constraint_violation = (

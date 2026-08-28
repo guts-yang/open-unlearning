@@ -1,10 +1,18 @@
 repo_root: ${hydra:runtime.cwd}
 seed_catalog_path: ${repo_root}/configs/mogpu/seed_catalog.yaml
-output_dir: ${repo_root}/saves/mogpu
+output_dir: /root/autodl-tmp/saves/mogpu
 fq_threshold: 0.05
 tier: search
+dry_run: false
+retain_logs_path: ${repo_root}/saves/eval/tofu_Llama-3.2-1B-Instruct_retain90/TOFU_EVAL.json
 fixed_recipe:
   lora_rank: null
   searchable: []
   budget:
     max_steps: 10
+nsga_overrides:
+  population_size: null
+  offspring_size: null
+  max_generations: null
+  archive_capacity: null
+skip_f3: false

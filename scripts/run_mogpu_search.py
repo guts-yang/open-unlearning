@@ -1,7 +1,8 @@
-"""Run a sequential MOGP-U seed search using the repository's Hydra training entrypoint."""
+"""Run SAGE-Pareto + NSGA-II search using frozen MOGPU training."""
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -19,19 +20,32 @@ from mogpu.seed_registry import SeedRegistry
 @hydra.main(version_base=None, config_path="../configs/mogpu", config_name="default")
 def main(cfg: DictConfig) -> None:
     registry = SeedRegistry.load(cfg.seed_catalog_path)
+    output_dir = Path(cfg.output_dir)
     recipe = {
         **OmegaConf.to_container(cfg.fixed_recipe, resolve=True),
-        "repo_root": cfg.repo_root,
+        "repo_root": str(cfg.repo_root),
+        "output_dir": str(output_dir),
         "experiment": "unlearn/tofu/mogpu_search",
         "eval_experiment": "eval/tofu/default",
-        "model": "configured_by_experiment",
-        "tofu_split": "configured_by_experiment",
+        "protocol_dir": str(Path(cfg.repo_root) / "configs/mogpu/search"),
+        "retain_logs_path": str(cfg.retain_logs_path),
+        "fq_threshold": float(cfg.fq_threshold),
         "training_seed": 0,
+        "forget_split": "forget10",
+        "cache_policy": "reuse_succeeded_only",
+        "dry_run": bool(cfg.get("dry_run", False)),
         "budget": OmegaConf.to_container(cfg.fixed_recipe.budget, resolve=True),
+        "nsga_overrides": OmegaConf.to_container(
+            cfg.get("nsga_overrides") or {}, resolve=True
+        ),
+        "skip_f3": bool(cfg.get("skip_f3", False)),
     }
-    controller = SearchController(registry, cfg.output_dir, recipe)
-    for seed in registry.initial_population(benchmark="TOFU"):
-        controller.run_seed(seed.seed_id)
+    controller = SearchController(registry, output_dir, recipe)
+    result = controller.run()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "search_summary.json").write_text(
+        json.dumps(result, indent=2, default=str) + "\n", encoding="utf-8"
+    )
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 .PHONY: quality style
 
-check_dirs := scripts src #setup.py
+check_dirs := scripts src tests #setup.py
 
 quality:
 	ruff check $(check_dirs) setup.py setup_data.py
@@ -11,4 +11,4 @@ style:
 	ruff format $(check_dirs) setup.py setup_data.py
 
 test:
-	CUDA_VISIBLE_DEVICES= pytest tests/
+	CUDA_VISIBLE_DEVICES= PYTHONPATH=src pytest tests/

@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "kind": "static_token_weights",
+  "rule": "uniform over labeled target tokens; normalize each example to sum to one",
+  "weights": []
+}

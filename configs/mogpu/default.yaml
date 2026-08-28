@@ -1,0 +1,10 @@
+repo_root: ${hydra:runtime.cwd}
+seed_catalog_path: ${repo_root}/configs/mogpu/seed_catalog.yaml
+output_dir: ${repo_root}/saves/mogpu
+fq_threshold: 0.05
+tier: search
+fixed_recipe:
+  lora_rank: null
+  searchable: []
+  budget:
+    max_steps: 10

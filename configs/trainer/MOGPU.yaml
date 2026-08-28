@@ -1,0 +1,8 @@
+defaults:
+  - GradDiff
+
+handler: MOGPU
+method_args:
+  candidate_spec_path: ???
+  candidate_root: null
+  retain_loss_type: NLL

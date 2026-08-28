@@ -1,0 +1,170 @@
+seeds:
+  - seed_id: NPO_ER_01
+    source_method: NPO
+    source_paper_url: https://arxiv.org/abs/2404.05868
+    source_repo_url: https://github.com/licong-lin/negative-preference-optimization
+    source_repo_revision: 1207bbe9a1abf502bc2d7b43a0a467d9524b4036
+    source_license: unlicensed
+    source_code_files: [TOFU/forget.py, TOFU/dataloader.py, TOFU/config/forget.yaml]
+    source_symbol_or_function: [CustomTrainerForgetting.compute_loss]
+    source_formula_locator: "Eq. (3), section 3"
+    implementation_origin: external_official_repo
+    implementation_status: enabled
+    m_dsl_mapping: {atoms: ["EraseResidual:softplus", "RetainDrift:huber"]}
+    approved_parameters: {kappa: [0.3, 0.5], tau: [0.02, 0.05]}
+    benchmark_scope: [TOFU]
+    forbidden_genes: [learning_rate, steps, lora_rank, lora_alpha, target_modules, data_order]
+    adaptation_note: "Independent M-DSL reduction; no external code is imported or copied."
+  - seed_id: SIMNPO_ER_01
+    source_method: SimNPO
+    source_paper_url: https://arxiv.org/html/2410.07163v4
+    source_repo_url: https://github.com/OPTML-Group/Unlearn-Simple
+    source_repo_revision: 3083017cb317753725f35cc404c2d5aede1242ef
+    source_license: MIT
+    source_code_files: [TOFU/forget.py, TOFU/dataloader.py, TOFU/config/forget.yaml]
+    source_symbol_or_function: [CustomTrainerForgetting.compute_loss]
+    source_formula_locator: "Eq. (5), section 5"
+    implementation_origin: external_official_repo
+    implementation_status: enabled
+    m_dsl_mapping: {atoms: ["EraseResidual:softplus", "RetainDrift:huber", "SelectiveMargin:softplus_margin"]}
+    approved_parameters: {kappa: [0.3, 0.5, 0.7], tau: [0.02, 0.05], temperature: [1.0]}
+    benchmark_scope: [TOFU, MUSE, WMDP]
+    forbidden_genes: [learning_rate, steps, lora_rank, lora_alpha, target_modules, data_order]
+    adaptation_note: "beta and delta become finite frozen smoothing and kappa priors only."
+  - seed_id: LLMU_ER_01
+    source_method: LLMU
+    source_paper_url: https://arxiv.org/html/2310.10683v2
+    source_repo_url: https://github.com/kevinyaobytedance/llm_unlearn
+    source_repo_revision: 647f309519f91c29d87e62cf63d9a43759810040
+    source_license: MIT
+    source_code_files: [unlearn_harm.py, utils.py]
+    source_symbol_or_function: [get_answer_loss]
+    source_formula_locator: "Eq. (1), section 2"
+    implementation_origin: external_official_repo
+    implementation_status: enabled
+    m_dsl_mapping: {atoms: ["EraseResidual:softplus", "RetainDrift:huber"]}
+    approved_parameters: {kappa: [0.3, 0.5], tau: [0.02, 0.05]}
+    benchmark_scope: [TOFU, WMDP]
+    forbidden_genes: [learning_rate, steps, lora_rank, lora_alpha, target_modules, data_order]
+    adaptation_note: "Direct erasure evidence is always paired with retain protection."
+  - seed_id: WGA_ER_01
+    source_method: WGA
+    source_paper_url: https://arxiv.org/html/2502.19301
+    source_repo_url: https://github.com/tmlr-group/G-effect
+    source_repo_revision: ef368eea3b2c6dba1e090b9ebb021ac9f047e0ae
+    source_license: unlicensed
+    source_code_files: [dataloader.py, forget2.py, config/forget.yaml]
+    source_symbol_or_function: [CustomTrainerForgetting.compute_loss]
+    source_formula_locator: "Eq. (2), section 3; Eq. (25), appendix D.1"
+    implementation_origin: external_official_repo
+    implementation_status: enabled
+    m_dsl_mapping: {atoms: ["EraseResidual:softplus", "RetainDrift:huber"]}
+    approved_parameters: {kappa: [0.3], tau: [0.05]}
+    fixed_weight_manifest: configs/mogpu/manifests/uniform-token-weights.json
+    fixed_weight_manifest_hash: 52a69eb0cb5fd2a1c4e333a6b106d245274d04f3c630fd957e31e6f14a4a66d3
+    weight_generation_rule: "Frozen uniform labelled-token baseline; no dynamic reweighting."
+    benchmark_scope: [TOFU]
+    forbidden_genes: [learning_rate, steps, lora_rank, lora_alpha, target_modules, data_order]
+    adaptation_note: "Only static manifest selection is allowed."
+  - seed_id: SATIMP_ER_01
+    source_method: SatImp
+    source_paper_url: https://proceedings.mlr.press/v267/yang25ak.html
+    source_repo_url: https://github.com/tmlr-group/SatImp
+    source_repo_revision: 51314c05abe393801fb8134b78ef402b0c95e4e2
+    source_license: unlicensed
+    source_code_files: [forget_sat.py, dataloader/dataloader_sat.py, config/forget_sat.yaml]
+    source_symbol_or_function: [CustomTrainerForgetting.compute_loss]
+    source_formula_locator: "Eq. (12), section 5"
+    implementation_origin: external_official_repo
+    implementation_status: enabled
+    m_dsl_mapping: {atoms: ["EraseResidual:softplus", "RetainDrift:huber"]}
+    approved_parameters: {kappa: [0.3], tau: [0.05]}
+    fixed_weight_manifest: configs/mogpu/manifests/uniform-token-weights.json
+    fixed_weight_manifest_hash: 52a69eb0cb5fd2a1c4e333a6b106d245274d04f3c630fd957e31e6f14a4a66d3
+    weight_generation_rule: "Frozen uniform labelled-token baseline; no dynamic reweighting."
+    benchmark_scope: [TOFU, MUSE]
+    forbidden_genes: [learning_rate, steps, lora_rank, lora_alpha, target_modules, data_order]
+    adaptation_note: "Only static manifest selection is allowed."
+  - seed_id: TPO_PENDING_01
+    source_method: TPO
+    source_paper_url: https://doi.org/10.1609/aaai.v40i44.41156
+    source_repo_url: https://github.com/xzhou98/Unlearning-TPO
+    source_repo_revision: 54d2216f3fbb8e7c2ea9a60d0f21c1e0d2a0668b
+    source_license: unlicensed
+    source_code_files: [TOFU/forget.py, TOFU/dataloader.py, TOFU/data_module.py]
+    source_symbol_or_function: [CustomTrainerForgetting.compute_loss]
+    source_formula_locator: "Section 3.3, Eqs. (3)-(5)"
+    implementation_origin: external_official_repo
+    implementation_status: pending_proof
+    m_dsl_mapping: {atoms: ["EraseResidual:softplus", "RetainDrift:huber"]}
+    proof_status: pending_gradient_contract
+    benchmark_scope: [TOFU, MUSE]
+    adaptation_note: "No fixed target-token mask, license, or validated execution path."
+  - seed_id: LOKU_PENDING_01
+    source_method: LoKU
+    source_paper_url: https://arxiv.org/html/2408.06621v5
+    source_repo_url: https://github.com/csm9493/efficient-llm-unlearning
+    source_repo_revision: 272484aabc7ba970ed357dc9212fde4f4d62bb5a
+    source_license: MIT
+    source_code_files: [TOFU/measure_importance.py, TOFU/forget.py, TOFU/dataloader.py]
+    source_symbol_or_function: [CustomTrainerForgetting.compute_loss]
+    source_formula_locator: "Sections 3.3-3.5, Eqs. (2)-(3)"
+    implementation_origin: external_official_repo
+    implementation_status: pending_proof
+    m_dsl_mapping: {atoms: ["EraseResidual:softplus", "RetainDrift:huber"]}
+    proof_status: pending_gradient_contract
+    benchmark_scope: [TOFU]
+    adaptation_note: "FILA initialization and IHL require a fixed manifest and direction proof."
+  - seed_id: ULD_PENDING_01
+    source_method: ULD
+    source_paper_url: https://arxiv.org/html/2406.08607
+    source_repo_url: https://github.com/UCSB-NLP-Chang/ULD
+    source_repo_revision: 858608c960819a8002cc60cc3788bbbd57f4a913
+    source_license: MIT
+    source_code_files: [scripts/hf_forget_train.py, uld/model/forget_losses.py, uld/model/contrastllm.py]
+    source_symbol_or_function: [create_unlearn_loss, ContrastLLM.forward]
+    source_formula_locator: "Sections 2.2-2.3, Eqs. (2)-(5)"
+    implementation_origin: external_official_repo
+    implementation_status: pending_proof
+    m_dsl_mapping: {atoms: ["EraseResidual:softplus", "RetainDrift:huber"]}
+    benchmark_scope: [TOFU]
+    adaptation_note: "Auxiliary model composition is outside the fixed single-checkpoint core."
+  - seed_id: RMU_BASELINE
+    source_method: RMU
+    implementation_origin: openunlearning_builtin
+    implementation_status: baseline_only
+    m_dsl_mapping: {atoms: []}
+    adaptation_note: "Activation steering is not output-probability M-DSL."
+  - seed_id: DPO_BASELINE
+    source_method: DPO
+    implementation_origin: openunlearning_builtin
+    implementation_status: baseline_only
+    m_dsl_mapping: {atoms: []}
+    adaptation_note: "Requires alternate/refusal-answer data structures."
+  - {seed_id: ADAPTIVE_RMU_BASELINE, source_method: "Adaptive RMU", implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Representation intervention."}
+  - {seed_id: ALMPU_BASELINE, source_method: ALMPU, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Activation intervention."}
+  - {seed_id: LUNAR_EXCLUDED, source_method: LUNAR, implementation_origin: paper_only_pending_proof, implementation_status: excluded, m_dsl_mapping: {atoms: []}, adaptation_note: "Inference-time activation redirection."}
+  - {seed_id: IDK_BASELINE, source_method: IDK, implementation_origin: openunlearning_builtin, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Refusal data required."}
+  - {seed_id: ALTPO_BASELINE, source_method: AltPO, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Alternate-answer data required."}
+  - {seed_id: FLAT_BASELINE, source_method: FLAT, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Refusal/f-divergence objective."}
+  - {seed_id: PDU_BASELINE, source_method: PDU, implementation_origin: openunlearning_builtin, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Dynamic primal-dual weighting."}
+  - {seed_id: GRU_BASELINE, source_method: GRU, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Gradient correction."}
+  - {seed_id: SAGO_BASELINE, source_method: SAGO, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Gradient composition."}
+  - {seed_id: GU_BASELINE, source_method: GU, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Gradient projection."}
+  - {seed_id: NSRU_BASELINE, source_method: NSRU, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "LoRA null-space constraint."}
+  - {seed_id: SAM_BASELINE, source_method: SAM, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Robust optimization."}
+  - {seed_id: SURE_BASELINE, source_method: SURE, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Robustness intervention."}
+  - {seed_id: UNDO_BASELINE, source_method: UNDO, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Post-training distillation."}
+  - {seed_id: SCRUB_BASELINE, source_method: SCRUB, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Distillation objective."}
+  - {seed_id: RKLD_BASELINE, source_method: RKLD, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Distribution distillation."}
+  - {seed_id: ROME_BASELINE, source_method: ROME, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Model editing."}
+  - {seed_id: MEMIT_BASELINE, source_method: MEMIT, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Model editing."}
+  - {seed_id: TASK_VECTOR_BASELINE, source_method: "Task Vector", implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Weight arithmetic."}
+  - {seed_id: GROM_BASELINE, source_method: GROM, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Closed-form weight editing."}
+  - {seed_id: ALPHAEDIT_BASELINE, source_method: AlphaEdit, implementation_origin: paper_only_pending_proof, implementation_status: baseline_only, m_dsl_mapping: {atoms: []}, adaptation_note: "Model editing."}
+  - {seed_id: ECO_EXCLUDED, source_method: ECO, implementation_origin: paper_only_pending_proof, implementation_status: excluded, m_dsl_mapping: {atoms: []}, adaptation_note: "Inference-time unlearning."}
+  - {seed_id: ICUL_EXCLUDED, source_method: ICUL, implementation_origin: paper_only_pending_proof, implementation_status: excluded, m_dsl_mapping: {atoms: []}, adaptation_note: "Inference-time unlearning."}
+  - {seed_id: AS_EXCLUDED, source_method: AS, implementation_origin: paper_only_pending_proof, implementation_status: excluded, m_dsl_mapping: {atoms: []}, adaptation_note: "Inference-time intervention."}
+  - {seed_id: GUARDIT_EXCLUDED, source_method: GUARD-IT, implementation_origin: paper_only_pending_proof, implementation_status: excluded, m_dsl_mapping: {atoms: []}, adaptation_note: "Inference-time routing."}
+  - {seed_id: WHP_EXCLUDED, source_method: WHP, implementation_origin: paper_only_pending_proof, implementation_status: excluded, m_dsl_mapping: {atoms: []}, adaptation_note: "Inference-time distribution manipulation."}
+  - {seed_id: RELEARN_EXCLUDED, source_method: ReLearn, implementation_origin: paper_only_pending_proof, implementation_status: excluded, m_dsl_mapping: {atoms: []}, adaptation_note: "Synthetic replacement-knowledge data paradigm."}

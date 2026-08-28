@@ -91,6 +91,9 @@ class CandidateSpec:
             )
         if len({term.atom for term in self.terms}) != len(self.terms):
             raise ValueError("A mechanism may appear at most once in a CandidateSpec")
+        atom_names = {term.atom for term in self.terms}
+        if not {"EraseResidual", "RetainDrift"} <= atom_names:
+            raise ValueError("CandidateSpec must contain EraseResidual and RetainDrift")
         total = sum(term.weight for term in self.terms)
         if not math.isfinite(total) or total <= 0:
             raise ValueError("CandidateSpec weights must have a finite positive sum")

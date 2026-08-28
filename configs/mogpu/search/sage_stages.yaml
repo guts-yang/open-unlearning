@@ -1,0 +1,5 @@
+f0: {promotion_capacity: 20, budget: {max_steps: 0}}
+f1: {promotion_capacity: 16, calibration_batch_manifest: null, budget: {max_steps: 0}}
+f2: {promotion_capacity: 8, budget: {max_steps: 10}, checkpoint_steps: [5, 10]}
+f3: {promotion_capacity: 4, budget: {max_steps: 50}, search_seeds: [0, 1], minimum_sample_count: 2, confidence_method: normal_95}
+novelty: {distance: categorical_hamming, threshold: 0.1}

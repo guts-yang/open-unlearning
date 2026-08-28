@@ -1,0 +1,9 @@
+experiment_id: mogpu_sage_v1
+fq_threshold: 0.05
+cache_policy: reuse_succeeded_only
+retry_failed: false
+lora_rank: null
+protocol_schema_version: 1
+search_split: tofu_search
+validation_split: tofu_validation
+sealed_test_split: tofu_sealed_test

@@ -1,0 +1,8 @@
+population_size: 20
+offspring_size: 20
+max_generations: 5
+random_seed: 20260828
+crossover_probability: 0.8
+mutation_probability: 0.2
+archive_capacity: 32
+constraint_tolerance: 1.0e-12

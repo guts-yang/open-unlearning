@@ -84,11 +84,22 @@ def crowding_distance(front: list[CandidateRecord]) -> None:
             ) / (high - low)
 
 
+def unique_records(population: list[CandidateRecord]) -> list[CandidateRecord]:
+    unique: list[CandidateRecord] = []
+    seen: set[str] = set()
+    for item in population:
+        if item.candidate_hash in seen:
+            continue
+        seen.add(item.candidate_hash)
+        unique.append(item)
+    return unique
+
+
 def environmental_selection(
     population: list[CandidateRecord], size: int
 ) -> list[CandidateRecord]:
     selected = []
-    for front in fast_non_dominated_sort(population):
+    for front in fast_non_dominated_sort(unique_records(population)):
         crowding_distance(front)
         if len(selected) + len(front) <= size:
             selected.extend(front)

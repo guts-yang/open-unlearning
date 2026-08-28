@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import random
 
-from mogpu.operators import crossover, mutate_weights
+from mogpu.operators import crossover, mutate_candidate
 from mogpu.search.nsga2 import binary_tournament
 from mogpu.search.records import CandidateRecord
 from mogpu.search.sage_pareto import spec_from_record
@@ -31,11 +31,11 @@ def make_offspring(
 ) -> list[CandidateRecord]:
     if len(parents) < 2:
         raise ValueError("Need at least two parents for NSGA-II offspring")
-    simplex = protocol["simplex"]
     children: list[CandidateRecord] = []
+    seen = {item.candidate_hash for item in parents}
     attempts = 0
     target = protocol["offspring_size"]
-    while len(children) < target and attempts < target * 8:
+    while len(children) < target and attempts < target * 16:
         attempts += 1
         first = binary_tournament(parents, rng)
         second = binary_tournament(parents, rng)
@@ -52,8 +52,11 @@ def make_offspring(
             except ValueError:
                 spec = left
         if rng.random() < protocol["mutation_probability"]:
-            spec = mutate_weights(spec, rng.randint(0, 2**31 - 1), simplex)
+            spec = mutate_candidate(spec, rng.randint(0, 2**31 - 1), protocol)
             operator = {**operator, "mutated": True}
+        if spec.ast_hash in seen:
+            continue
+        seen.add(spec.ast_hash)
         children.append(record_from_spec(spec, generation, hashes, operator))
     return children[:target]
 
@@ -63,13 +66,12 @@ def expand_initial(
 ) -> list[CandidateRecord]:
     population = list(seeds)
     seen = {item.candidate_hash for item in population}
-    simplex = protocol["simplex"]
     guard = 0
-    while len(population) < protocol["population_size"] and guard < 200:
+    while len(population) < protocol["population_size"] and guard < 400:
         guard += 1
         parent = rng.choice(seeds)
-        spec = mutate_weights(
-            spec_from_record(parent), rng.randint(0, 2**31 - 1), simplex
+        spec = mutate_candidate(
+            spec_from_record(parent), rng.randint(0, 2**31 - 1), protocol
         )
         if spec.ast_hash in seen:
             continue

@@ -10,8 +10,17 @@ class ParetoArchive:
         self._items: dict[str, CandidateRecord] = {}
 
     def add(self, record: CandidateRecord) -> None:
-        if record.tier != "search" or not record.fq_feasible:
+        if record.tier != "search" or record.status != "passed":
             return
+        has_feasible = record.fq_feasible or any(
+            item.fq_feasible for item in self._items.values()
+        )
+        if has_feasible:
+            if not record.fq_feasible:
+                return
+            self._items = {
+                key: item for key, item in self._items.items() if item.fq_feasible
+            }
         self._items.setdefault(record.candidate_hash, record)
         chosen = environmental_selection(list(self._items.values()), self.capacity)
         self._items = {item.candidate_hash: item for item in chosen}

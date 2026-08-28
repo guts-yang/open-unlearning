@@ -1,4 +1,4 @@
-forget_score: {path: forget_Truth_Ratio, direction: max}
+forget_score: {path: forget_truth_ratio, direction: max}
 retain_utility: {path: model_utility, direction: max}
 negative_instability: {path: trajectory_stability, direction: max, optional: true}
 negative_complexity: {path: mechanism_complexity, direction: min, synthetic: true}

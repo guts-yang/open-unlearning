@@ -3,6 +3,7 @@ offspring_size: 20
 max_generations: 5
 random_seed: 20260828
 crossover_probability: 0.8
-mutation_probability: 0.2
+mutation_probability: 0.6
+structure_mutation_probability: 0.25
 archive_capacity: 32
 constraint_tolerance: 1.0e-12

@@ -27,6 +27,9 @@ def main(cfg: DictConfig) -> None:
         "output_dir": str(output_dir),
         "experiment": "unlearn/tofu/mogpu_search",
         "eval_experiment": "eval/tofu/default",
+        "pretrained_model_name_or_path": (
+            "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"
+        ),
         "protocol_dir": str(Path(cfg.repo_root) / "configs/mogpu/search"),
         "retain_logs_path": str(cfg.retain_logs_path),
         "fq_threshold": float(cfg.fq_threshold),
@@ -37,6 +40,9 @@ def main(cfg: DictConfig) -> None:
         "budget": OmegaConf.to_container(cfg.fixed_recipe.budget, resolve=True),
         "nsga_overrides": OmegaConf.to_container(
             cfg.get("nsga_overrides") or {}, resolve=True
+        ),
+        "sage_overrides": OmegaConf.to_container(
+            cfg.get("sage_overrides") or {}, resolve=True
         ),
         "skip_f3": bool(cfg.get("skip_f3", False)),
     }

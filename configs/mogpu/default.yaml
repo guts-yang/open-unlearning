@@ -15,4 +15,11 @@ nsga_overrides:
   offspring_size: null
   max_generations: null
   archive_capacity: null
+  mutation_probability: null
+  structure_mutation_probability: null
+sage_overrides:
+  f2:
+    budget:
+      max_steps: null
+    checkpoint_steps: null
 skip_f3: false

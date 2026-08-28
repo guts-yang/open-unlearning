@@ -3,7 +3,8 @@
 import json
 from pathlib import Path
 
-from mogpu.operators import crossover, mutate_weights
+from mogpu.operators import crossover, mutate_structure, mutate_thresholds, mutate_weights
+from mogpu.search.archive import ParetoArchive
 from mogpu.search import SearchController
 from mogpu.search.objectives import apply_objectives, parse_summary
 from mogpu.search.records import CandidateRecord
@@ -127,3 +128,74 @@ def test_dry_run_search_produces_summary(tmp_path):
         candidate_from_seed(seed), 0, controller.protocol["simplex"]
     )
     assert mutated.ast_hash
+    assert controller.protocol["sage"]["f2"]["budget"]["max_steps"] == 10
+
+
+def test_sage_overrides_replace_f2_budget(tmp_path):
+    registry = SeedRegistry.load(ROOT / "configs/mogpu/seed_catalog.yaml")
+    recipe = {
+        "repo_root": str(ROOT),
+        "output_dir": str(tmp_path),
+        "experiment": "unlearn/tofu/mogpu_search",
+        "eval_experiment": "eval/tofu/default",
+        "protocol_dir": str(ROOT / "configs/mogpu/search"),
+        "retain_logs_path": str(tmp_path / "missing.json"),
+        "fq_threshold": 0.05,
+        "training_seed": 0,
+        "lora_rank": None,
+        "searchable": [],
+        "dry_run": True,
+        "budget": {"max_steps": 10},
+        "sage_overrides": {
+            "f2": {"budget": {"max_steps": 50}, "checkpoint_steps": [50]}
+        },
+    }
+    controller = SearchController(registry, tmp_path, recipe)
+    assert controller.protocol["sage"]["f2"]["budget"]["max_steps"] == 50
+    assert controller.protocol["sage"]["f2"]["checkpoint_steps"] == [50]
+
+
+def test_structure_and_threshold_mutations_stay_legal():
+    spec = _spec()
+    three = mutate_structure(spec, 1, ((1.0, 1.0), (1.0, 1.0, 1.0)))
+    assert "SelectiveMargin" in [term.atom for term in three.terms]
+    two = mutate_structure(three, 1, ((1.0, 1.0), (1.0, 1.0, 1.0)))
+    assert [term.atom for term in two.terms] == ["EraseResidual", "RetainDrift"]
+    shifted = mutate_thresholds(spec, 3, {"kappa": (0.3, 0.5), "tau": (0.02, 0.05)})
+    assert dict(shifted.thresholds)["kappa"] in {0.3, 0.5}
+
+
+def test_archive_keeps_infeasible_until_a_feasible_arrives():
+    archive = ParetoArchive(2)
+    weak = CandidateRecord(
+        candidate_hash="weak",
+        canonical_spec={},
+        generation=0,
+        status="passed",
+        fq_feasible=False,
+        constraint_violation=0.04,
+        objectives={"retain_utility": 0.1},
+    )
+    strong = CandidateRecord(
+        candidate_hash="strong",
+        canonical_spec={},
+        generation=0,
+        status="passed",
+        fq_feasible=False,
+        constraint_violation=0.01,
+        objectives={"retain_utility": 0.2},
+    )
+    archive.add(weak)
+    archive.add(strong)
+    assert {item["candidate_hash"] for item in archive.snapshot()} == {"weak", "strong"}
+    feasible = CandidateRecord(
+        candidate_hash="ok",
+        canonical_spec={},
+        generation=0,
+        status="passed",
+        fq_feasible=True,
+        constraint_violation=0.0,
+        objectives={"retain_utility": 0.05},
+    )
+    archive.add(feasible)
+    assert [item["candidate_hash"] for item in archive.snapshot()] == ["ok"]

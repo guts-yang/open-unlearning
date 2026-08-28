@@ -25,6 +25,18 @@ def test_feasible_beats_infeasible_regardless_of_utility():
     assert fast_non_dominated_sort([feasible, infeasible])[0] == [feasible]
 
 
+def test_environmental_selection_deduplicates_hashes():
+    population = [
+        record("a", True, 0.2),
+        record("a", True, 0.2),
+        record("b", True, 0.4),
+        record("b", True, 0.4),
+    ]
+    selected = environmental_selection(population, 4)
+    assert {item.candidate_hash for item in selected} == {"a", "b"}
+    assert len(selected) == 2
+
+
 def test_environmental_selection_and_tournament_are_deterministic():
     population = [
         record("a", True, 0.2),

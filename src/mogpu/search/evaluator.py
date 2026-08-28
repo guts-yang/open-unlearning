@@ -59,9 +59,10 @@ class FitnessEvaluator:
         write_spec(spec, spec_path)
         trial.mkdir(parents=True, exist_ok=True)
         final_eval = trial / f"evals-{max(max_steps, 0)}" / "TOFU_SUMMARY.json"
+        trained_model = trial / "config.json"
         if not (
             self.recipe.get("cache_policy") == "reuse_succeeded_only"
-            and final_eval.is_file()
+            and (final_eval.is_file() or trained_model.is_file())
         ):
             self._train(spec_path, trial, max_steps, seed)
         points = []
@@ -79,7 +80,13 @@ class FitnessEvaluator:
             if marker in seen:
                 continue
             seen.add(marker)
-            summary = self._eval(ckpt, trial / f"evals-{step}")
+            eval_dir = trial / f"evals-{step}"
+            summary = eval_dir / "TOFU_SUMMARY.json"
+            if not (
+                self.recipe.get("cache_policy") == "reuse_succeeded_only"
+                and summary.is_file()
+            ):
+                summary = self._eval(ckpt, eval_dir)
             parsed = parse_summary(summary, self.schema, self.fq_threshold)
             points.append(
                 {
@@ -167,12 +174,20 @@ class FitnessEvaluator:
             "trainer.args.eval_strategy=no",
             f"retain_logs_path={self.retain_logs_path}",
         ]
+        pretrained = self.recipe.get("pretrained_model_name_or_path")
+        if pretrained:
+            command.extend(
+                [
+                    f"model.model_args.pretrained_model_name_or_path={pretrained}",
+                    f"model.tokenizer_args.pretrained_model_name_or_path={pretrained}",
+                ]
+            )
         if max_steps > 0:
             command.extend(
                 [
                     f"trainer.args.max_steps={max_steps}",
                     "trainer.args.save_strategy=steps",
-                    f"trainer.args.save_steps={max(1, int(save_steps))}",
+                    f"+trainer.args.save_steps={max(1, int(save_steps))}",
                 ]
             )
         else:
@@ -183,7 +198,7 @@ class FitnessEvaluator:
             command.append(
                 f"trainer.args.num_train_epochs={self.recipe['num_train_epochs']}"
             )
-        command.extend(self._split_overrides())
+        command.extend(self._split_overrides(for_eval=False))
         subprocess.run(command, check=True, cwd=self.repo_root)
 
     def _eval(self, model_path: Path, eval_dir: Path) -> Path:
@@ -197,14 +212,14 @@ class FitnessEvaluator:
             f"paths.output_dir={eval_dir}",
             f"retain_logs_path={self.retain_logs_path}",
         ]
-        command.extend(self._split_overrides())
+        command.extend(self._split_overrides(for_eval=True))
         subprocess.run(command, check=True, cwd=self.repo_root)
         summary = eval_dir / "TOFU_SUMMARY.json"
         if not summary.is_file():
             raise FileNotFoundError(summary)
         return summary
 
-    def _split_overrides(self) -> list[str]:
+    def _split_overrides(self, for_eval: bool) -> list[str]:
         forget = self.recipe.get("forget_split")
         if not forget:
             return []
@@ -215,8 +230,9 @@ class FitnessEvaluator:
         }.get(forget, (None, None))
         overrides = [f"forget_split={forget}"]
         if retain[0]:
-            overrides.append(f"retain_split={retain[0]}")
             overrides.append(f"holdout_split={retain[1]}")
+            if not for_eval:
+                overrides.append(f"retain_split={retain[0]}")
         return overrides
 
     def _append_ledger(

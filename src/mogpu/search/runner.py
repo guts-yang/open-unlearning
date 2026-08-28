@@ -27,6 +27,37 @@ def load_simplex(path: str | Path) -> tuple[tuple[float, ...], ...]:
     return tuple(tuple(float(value) for value in row) for row in raw["weights"])
 
 
+def load_threshold_grids(path: str | Path) -> dict[str, tuple[float, ...]]:
+    raw = load_yaml(path)
+    grids = raw.get("thresholds") or {}
+    return {
+        str(name): tuple(float(value) for value in values)
+        for name, values in grids.items()
+    }
+
+
+def merge_sage(sage: dict[str, Any], overrides: dict[str, Any] | None) -> dict[str, Any]:
+    if not overrides:
+        return sage
+    merged = dict(sage)
+    for stage, payload in overrides.items():
+        if payload is None:
+            continue
+        base = dict(merged.get(stage) or {})
+        overlay = dict(payload)
+        budget = overlay.pop("budget", None) or {}
+        cleaned_budget = {
+            key: value for key, value in budget.items() if value is not None
+        }
+        if cleaned_budget:
+            base["budget"] = {**(base.get("budget") or {}), **cleaned_budget}
+        for key, value in overlay.items():
+            if value is not None:
+                base[key] = list(value) if isinstance(value, (list, tuple)) else value
+        merged[stage] = base
+    return merged
+
+
 class SearchController:
     """Wire SAGE + NSGA-II onto frozen MOGPU training. Evolution is this class."""
 
@@ -39,16 +70,24 @@ class SearchController:
         if not self.recipe.get("dry_run"):
             try:
                 import torch
-
-                if not torch.cuda.is_available():
-                    self.recipe["dry_run"] = True
-            except ImportError:
-                self.recipe["dry_run"] = True
+            except ImportError as error:
+                raise RuntimeError(
+                    "Real MOGP-U search requires a CUDA-enabled PyTorch install"
+                ) from error
+            if not torch.cuda.is_available() or torch.cuda.device_count() < 2:
+                raise RuntimeError(
+                    "Real MOGP-U search requires at least two visible CUDA GPUs; "
+                    "set dry_run=true explicitly for CPU-only orchestration tests"
+                )
         self._validate_recipe()
         protocol_dir = Path(recipe["protocol_dir"])
         nsga = load_yaml(protocol_dir / "nsga2_sage_pareto.yaml")
-        sage = load_yaml(protocol_dir / "sage_stages.yaml")
+        sage = merge_sage(
+            load_yaml(protocol_dir / "sage_stages.yaml"),
+            recipe.get("sage_overrides"),
+        )
         frozen = load_yaml(protocol_dir / "frozen_search_protocol.yaml")
+        simplex_path = protocol_dir / "weight_simplex.yaml"
         self.schema = load_yaml(protocol_dir / "objectives.yaml")
         self.fq_threshold = float(recipe.get("fq_threshold", frozen["fq_threshold"]))
         self.recipe.setdefault("cache_policy", frozen.get("cache_policy"))
@@ -56,7 +95,8 @@ class SearchController:
             **nsga,
             "sage": sage,
             "frozen": frozen,
-            "simplex": load_simplex(protocol_dir / "weight_simplex.yaml"),
+            "simplex": load_simplex(simplex_path),
+            "threshold_grids": load_threshold_grids(simplex_path),
             "training_seed": recipe.get("training_seed", 0),
         }
         self.protocol.update(

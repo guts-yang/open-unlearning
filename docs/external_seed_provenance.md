@@ -3,6 +3,7 @@
 External repositories are evidence sources only. MOGP-U does not import, vendor, or
 copy their training code; each seed is independently reduced to the closed E/R/S DSL.
 The executable catalog is [`configs/mogpu/seed_catalog.yaml`](../configs/mogpu/seed_catalog.yaml).
+Search-discovered top-3 specs (open 8×8×4, F2=50, forget10; not FQ-feasible) live in [`configs/mogpu/discovered/`](../configs/mogpu/discovered/).
 
 | Method | Status | Source revision | License | M-DSL evidence |
 | --- | --- | --- | --- | --- |

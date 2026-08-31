@@ -1,0 +1,23 @@
+{
+  "approved_variants": {
+    "EraseResidual": "softplus",
+    "RetainDrift": "huber",
+    "SelectiveMargin": "softplus_margin"
+  },
+  "atoms": [
+    "EraseResidual",
+    "RetainDrift",
+    "SelectiveMargin"
+  ],
+  "schema_version": 1,
+  "thresholds": {
+    "kappa": 0.3,
+    "tau": 0.05,
+    "temperature": 1.0
+  },
+  "weights": [
+    0.2,
+    0.6,
+    0.2
+  ]
+}

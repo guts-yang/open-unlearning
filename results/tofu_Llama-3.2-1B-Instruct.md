@@ -2,18 +2,26 @@
 
 本机复现结果（动态表）。同一方法同一 forget split 会被覆盖更新。
 
-更新时间：2026-08-28T10:51:09+08:00
+更新时间：2026-08-31T09:39:25+08:00
 
-## 本机指标
+## 复现 Leaderboard（每基座取 SOTA）
 
-| 方法 | split | FQ | MU | TR | forget Prob | forget ROUGE | privleak | ES |
-|------|-------|----|----|----|-------------|--------------|----------|----|
-| SimNPO | forget10 | 2.78e-16 | 0.5800 | 0.5177 | 0.5855 | 0.4789 | -97.7850 | 0.1812 |
-| RMU | forget10 | 4.24e-17 | 0.5853 | 0.7718 | 9.02e-05 | 0.0396 | 57.8010 | 0.0325 |
-| UNDIAL | forget10 | 6.16e-18 | 0.5655 | 0.5617 | 0.2566 | 0.3377 | -93.7317 | 0.0451 |
-| AltPO | forget10 | 6.39e-06 | 0.5345 | 0.6153 | 0.5078 | 0.4071 | -93.3353 | 0.1465 |
+SOTA = 当前复现 runs 中 6 项「越高越好」指标（FQ / MU / 1−RL / TR / 1-Prob / 1-ES）的均值最高者。
 
-FQ = forget_quality，MU = model_utility，TR = forget_truth_ratio，ES = extraction_strength。
+| 基座名称 | SOTA 方法 | FQ↑ | MU↑ | 1−RL↑ | TR↑ | 1-Prob↑ | 1-ES↑ | 全称 | 设置一致性 |
+|----------|-----------|-----|-----|-------|-----|---------|-------|------|------------|
+| Llama-3.2-1B-Instruct | **RMU** | 4.24e-17 | 0.5853 | 0.9604 | 0.7718 | 0.9999 | 0.9675 | Representation Misdirection for Unlearning（Li et al., 2024） | 本机复现（forget10），硬件/torch 与官方 2×L40s 不同、只比量级；与官方未调参设置一致（FQ/MU/TR 量级吻合） |
+
+FQ = forget_quality，MU = model_utility，TR = forget_truth_ratio，ES = extraction_strength，RL = forget ROUGE-L。1−RL / 1-Prob / 1-ES 已翻转为「越高越好」。privleak 等原始值见 `results/*.json`。
+
+## 本机各方法明细（统一方向：越高越好）
+
+| 基座名称 | 方法 | FQ↑ | MU↑ | 1−RL↑ | TR↑ | 1-Prob↑ | 1-ES↑ |
+|----------|------|-----|-----|-------|-----|---------|-------|
+| Llama-3.2-1B-Instruct | SimNPO | 2.78e-16 | 0.5800 | 0.5211 | 0.5177 | 0.4145 | 0.8188 |
+| Llama-3.2-1B-Instruct | **RMU** | 4.24e-17 | 0.5853 | 0.9604 | 0.7718 | 0.9999 | 0.9675 |
+| Llama-3.2-1B-Instruct | UNDIAL | 6.16e-18 | 0.5655 | 0.6623 | 0.5617 | 0.7434 | 0.9549 |
+| Llama-3.2-1B-Instruct | AltPO | 6.39e-06 | 0.5345 | 0.5929 | 0.6153 | 0.4922 | 0.8535 |
 
 ## 官方未调参对照（仅 FQ / MU / TR）
 
@@ -28,7 +36,7 @@ FQ = forget_quality，MU = model_utility，TR = forget_truth_ratio，ES = extrac
 
 ## 参照 / SOTA（TOFU 1B · forget10）
 
-仓库 `community/leaderboard.md` 的 1B 表没有调参方法，**没有覆盖全部 8 列的公开 SOTA**。下面分两档：
+仓库 `community/leaderboard.md` 的 1B 表没有调参方法，**没有覆盖本表 6 项统一指标（FQ/MU/1−RL/TR/1-Prob/1-ES）的公开 SOTA**。下面分两档：
 
 ### 上界与未遗忘下界
 
@@ -49,4 +57,4 @@ FQ = forget_quality，MU = model_utility，TR = forget_truth_ratio，ES = extrac
 | MU | RMU | 0.5900 |
 | TR | RMU | 0.7600 |
 
-论文 Table 3 调参后综合分第一是 SimNPO（Agg 0.53），超参不同，对不上本表 8 列。未调参时 SimNPO 的 FQ 极差，**不是** FQ 的参照最优。
+论文 Table 3 调参后综合分第一是 SimNPO（Agg 0.53），超参不同，对不上本表 6 项统一指标。未调参时 SimNPO 的 FQ 极差，**不是** FQ 的参照最优。

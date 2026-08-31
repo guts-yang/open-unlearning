@@ -60,6 +60,53 @@ OFFICIAL_BEST_UNLEARN = {
     "forget_truth_ratio": ("RMU", 0.76),
 }
 
+# 方法全称（Leaderboard「全称」列）
+FULL_NAMES = {
+    "SimNPO": "SimNPO: A Simple and Effective Non-Preference Optimization for Machine Unlearning",
+    "RMU": "Representation Misdirection for Unlearning（Li et al., 2024）",
+    "UNDIAL": "Self-Distillation with Adjusted Logits for Robust Unlearning in Large Language Models（NAACL 2025）",
+    "AltPO": "Alternate Preference Optimization for Unlearning Factual Knowledge in Large Language Models",
+    "NPO": "Negative Preference Optimization",
+    "IdkDPO": "IDK-DPO",
+    "GradDiff": "Gradient Difference",
+    "GradAscent": "Gradient Ascent",
+}
+
+# 与官方未调参设置（docs/repro.md）的对照结论；无条目的方法用通用说明
+SETTING_NOTES = {
+    "RMU": "与官方未调参设置一致（FQ/MU/TR 量级吻合）",
+    "SimNPO": "与官方未调参表超参不一致（本机 TR 0.52 vs 官方 1.07e-05，量级差异大）",
+    "UNDIAL": "官方无 1B forget10 对照",
+    "AltPO": "官方无 1B forget10 对照",
+}
+
+
+def unified_metrics(run: dict) -> dict:
+    """把原始指标转成统一「越高越好」方向；RL = forget ROUGE-L。"""
+    m = run.get("metrics", {})
+    return {
+        "fq": fmt(m.get("forget_quality")),
+        "mu": fmt(m.get("model_utility")),
+        "rl": fmt(1.0 - (m.get("forget_Q_A_ROUGE") or 0.0)),
+        "tr": fmt(m.get("forget_truth_ratio")),
+        "prob": fmt(1.0 - (m.get("forget_Q_A_Prob") or 0.0)),
+        "es": fmt(1.0 - (m.get("extraction_strength") or 0.0)),
+    }
+
+
+def sota_score(run: dict) -> float:
+    """6 项统一指标（FQ/MU/1−RL/TR/1-Prob/1-ES）的均值，用于选每基座 SOTA。"""
+    m = run.get("metrics", {})
+    vals = [
+        m.get("forget_quality") or 0.0,
+        m.get("model_utility") or 0.0,
+        1.0 - (m.get("forget_Q_A_ROUGE") or 0.0),
+        m.get("forget_truth_ratio") or 0.0,
+        1.0 - (m.get("forget_Q_A_Prob") or 0.0),
+        1.0 - (m.get("extraction_strength") or 0.0),
+    ]
+    return sum(vals) / len(vals)
+
 
 def fmt(v) -> str:
     if v is None:
@@ -106,6 +153,14 @@ def upsert_run(store: dict, run: dict) -> None:
 
 def write_markdown(store: dict, md_path: Path) -> None:
     model = store["model"]
+    runs = store["runs"]
+
+    # 按（基座，forget split）分组，每组取一个 SOTA
+    groups: dict[tuple[str, str], list[dict]] = {}
+    for r in runs:
+        key = (r.get("model", model), r.get("forget_split", ""))
+        groups.setdefault(key, []).append(r)
+
     lines = [
         f"# TOFU · `{model}`",
         "",
@@ -113,29 +168,64 @@ def write_markdown(store: dict, md_path: Path) -> None:
         "",
         f"更新时间：{datetime.now(timezone.utc).astimezone().isoformat(timespec='seconds')}",
         "",
-        "## 本机指标",
+        "## 复现 Leaderboard（每基座取 SOTA）",
         "",
-        "| 方法 | split | FQ | MU | TR | forget Prob | forget ROUGE | privleak | ES |",
-        "|------|-------|----|----|----|-------------|--------------|----------|----|",
+        "SOTA = 当前复现 runs 中 6 项「越高越好」指标（FQ / MU / 1−RL / TR / 1-Prob / 1-ES）的均值最高者。",
+        "",
+        "| 基座名称 | SOTA 方法 | FQ↑ | MU↑ | 1−RL↑ | TR↑ | 1-Prob↑ | 1-ES↑ | 全称 | 设置一致性 |",
+        "|----------|-----------|-----|-----|-------|-----|---------|-------|------|------------|",
     ]
-    for r in store["runs"]:
-        m = r.get("metrics", {})
+    for (bmodel, split), group in sorted(groups.items()):
+        sota = max(group, key=sota_score)
+        u = unified_metrics(sota)
+        method = sota.get("method", "")
         lines.append(
-            "| {method} | {split} | {fq} | {mu} | {tr} | {prob} | {rouge} | {priv} | {es} |".format(
-                method=r.get("method", ""),
-                split=r.get("forget_split", ""),
-                fq=fmt(m.get("forget_quality")),
-                mu=fmt(m.get("model_utility")),
-                tr=fmt(m.get("forget_truth_ratio")),
-                prob=fmt(m.get("forget_Q_A_Prob")),
-                rouge=fmt(m.get("forget_Q_A_ROUGE")),
-                priv=fmt(m.get("privleak")),
-                es=fmt(m.get("extraction_strength")),
+            "| {base} | **{method}** | {fq} | {mu} | {rl} | {tr} | {prob} | {es} | "
+            "{full} | 本机复现（{split}），硬件/torch 与官方 2×L40s 不同、只比量级；{note} |".format(
+                base=bmodel,
+                method=method,
+                fq=u["fq"],
+                mu=u["mu"],
+                rl=u["rl"],
+                tr=u["tr"],
+                prob=u["prob"],
+                es=u["es"],
+                full=FULL_NAMES.get(method, method),
+                split=split,
+                note=SETTING_NOTES.get(method, "沿用本仓库默认设置"),
             )
         )
+
     lines += [
         "",
-        "FQ = forget_quality，MU = model_utility，TR = forget_truth_ratio，ES = extraction_strength。",
+        "FQ = forget_quality，MU = model_utility，TR = forget_truth_ratio，ES = extraction_strength，"
+        "RL = forget ROUGE-L。1−RL / 1-Prob / 1-ES 已翻转为「越高越好」。privleak 等原始值见 `results/*.json`。",
+        "",
+        "## 本机各方法明细（统一方向：越高越好）",
+        "",
+        "| 基座名称 | 方法 | FQ↑ | MU↑ | 1−RL↑ | TR↑ | 1-Prob↑ | 1-ES↑ |",
+        "|----------|------|-----|-----|-------|-----|---------|-------|",
+    ]
+    for (bmodel, split), group in sorted(groups.items()):
+        sota_method = max(group, key=sota_score).get("method")
+        for r in group:
+            u = unified_metrics(r)
+            method = r.get("method", "")
+            shown = f"**{method}**" if method == sota_method else method
+            lines.append(
+                "| {base} | {method} | {fq} | {mu} | {rl} | {tr} | {prob} | {es} |".format(
+                    base=bmodel,
+                    method=shown,
+                    fq=u["fq"],
+                    mu=u["mu"],
+                    rl=u["rl"],
+                    tr=u["tr"],
+                    prob=u["prob"],
+                    es=u["es"],
+                )
+            )
+
+    lines += [
         "",
         "## 官方未调参对照（仅 FQ / MU / TR）",
         "",
@@ -144,7 +234,7 @@ def write_markdown(store: dict, md_path: Path) -> None:
         "| 方法 | split | 官方 FQ | 官方 MU | 官方 TR | 本机 FQ | 本机 MU | 本机 TR |",
         "|------|-------|---------|---------|---------|---------|---------|---------|",
     ]
-    for r in store["runs"]:
+    for r in runs:
         split, method = r.get("forget_split"), r.get("method")
         official = OFFICIAL_FQ_MU_TR.get((split, method))
         m = r.get("metrics", {})
@@ -167,7 +257,7 @@ def write_markdown(store: dict, md_path: Path) -> None:
         "",
         "## 参照 / SOTA（TOFU 1B · forget10）",
         "",
-        "仓库 `community/leaderboard.md` 的 1B 表没有调参方法，**没有覆盖全部 8 列的公开 SOTA**。下面分两档：",
+        "仓库 `community/leaderboard.md` 的 1B 表没有调参方法，**没有覆盖本表 6 项统一指标（FQ/MU/1−RL/TR/1-Prob/1-ES）的公开 SOTA**。下面分两档：",
         "",
         "### 上界与未遗忘下界",
         "",
@@ -188,7 +278,7 @@ def write_markdown(store: dict, md_path: Path) -> None:
         f"| MU | {bmu_m} | {fmt(bmu)} |",
         f"| TR | {btr_m} | {fmt(btr)} |",
         "",
-        "论文 Table 3 调参后综合分第一是 SimNPO（Agg 0.53），超参不同，对不上本表 8 列。未调参时 SimNPO 的 FQ 极差，**不是** FQ 的参照最优。",
+        "论文 Table 3 调参后综合分第一是 SimNPO（Agg 0.53），超参不同，对不上本表 6 项统一指标。未调参时 SimNPO 的 FQ 极差，**不是** FQ 的参照最优。",
         "",
     ]
     md_path.write_text("\n".join(lines), encoding="utf-8")

@@ -6,6 +6,11 @@ defaults: # include all defined metrics files
   # metric key below, enabled by the @package directive at the top of each configuration file.
     - forget_Truth_Ratio
     - forget_quality
+    # ES-MU / CSS-MU (方向G): KS statistic D and W1 as callable reward channels.
+    # Both reuse the forget_Truth_Ratio pre-compute already listed above, so enabling
+    # them costs only the final aggregation (see reports/S1_ks_d_reward_channel.md).
+    - forget_quality_D
+    - w1_distance
     - forget_Q_A_Prob
     - forget_Q_A_ROUGE
     - model_utility # populated in the metrics key as metrics.model_utility

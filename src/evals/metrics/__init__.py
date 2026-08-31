@@ -9,7 +9,13 @@ from evals.metrics.memorization import (
     extraction_strength,
     exact_memorization,
 )
-from evals.metrics.privacy import ks_test, privleak, rel_diff
+from evals.metrics.privacy import (
+    ks_statistic,
+    ks_test,
+    privleak,
+    rel_diff,
+    w1_distance,
+)
 from evals.metrics.mia import (
     mia_loss,
     mia_min_k,
@@ -60,6 +66,8 @@ _register_metric(ks_test)
 _register_metric(hm_aggregate)
 _register_metric(privleak)
 _register_metric(rel_diff)
+_register_metric(ks_statistic)
+_register_metric(w1_distance)
 _register_metric(exact_memorization)
 _register_metric(extraction_strength)
 

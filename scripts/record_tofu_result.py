@@ -225,6 +225,35 @@ def write_markdown(store: dict, md_path: Path) -> None:
                 )
             )
 
+    # 四维（OU Table 3 口径）：只有带 ou_table3 字段的 run 才参与，默认不影响原表
+    ou_runs = [r for r in runs if r.get("ou_table3")]
+    if ou_runs:
+        lines += [
+            "",
+            "## 本机四维（OU Table 3 口径）",
+            "",
+            "Mem=HM(1−ES,1−EM,1−ParaProb,1−TR)；Priv=HM(s_LOSS,s_ZLib,s_MinK,s_MinK++)；"
+            "Utility=HM(MU,Fluency)；Agg=HM(Mem,Priv,Utility)；全部按 init-finetuned 归一化。"
+            "来自 `scripts/ou_aggregate.py --json`（`--ou-summary`）。",
+            "",
+            "| 基座名称 | 方法 | split | Mem | Priv | Utility | Agg | ckpt |",
+            "|----------|------|-------|-----|------|---------|-----|------|",
+        ]
+        for r in sorted(ou_runs, key=lambda r: -(r["ou_table3"].get("Agg") or 0)):
+            o = r["ou_table3"]
+            lines.append(
+                "| {base} | {method} | {split} | {mem} | {priv} | {util} | {agg} | {ckpt} |".format(
+                    base=r.get("model", model),
+                    method=r.get("method", ""),
+                    split=r.get("forget_split", ""),
+                    mem=fmt(o.get("Mem")),
+                    priv=fmt(o.get("Priv")),
+                    util=fmt(o.get("Utility")),
+                    agg=fmt(o.get("Agg")),
+                    ckpt=r.get("ckpt", "") or "—",
+                )
+            )
+
     lines += [
         "",
         "## 官方未调参对照（仅 FQ / MU / TR）",
@@ -292,6 +321,9 @@ def main() -> None:
     parser.add_argument("--model", default="Llama-3.2-1B-Instruct")
     parser.add_argument("--ckpt", default="")
     parser.add_argument("--refresh-only", action="store_true")
+    parser.add_argument("--ou-summary", type=Path, default=None,
+                        help="ou_aggregate.py --json 产出的四维 JSON；"
+                             "传入后才在 md 里追加「本机四维（OU Table 3 口径）」表，默认行为不变")
     args = parser.parse_args()
 
     base = f"tofu_{args.model}"
@@ -316,6 +348,15 @@ def main() -> None:
         extra = {k: v for k, v in metrics.items() if k not in METRIC_KEYS}
         if extra:
             run["metrics_extra"] = extra
+        if args.ou_summary:
+            ou = json.loads(Path(args.ou_summary).read_text())
+            run["ou_table3"] = {
+                "Mem": ou.get("Mem"),
+                "Priv": ou.get("Priv"),
+                "Utility": ou.get("Utility"),
+                "Agg": ou.get("Agg"),
+                "params": ou.get("params"),
+            }
         upsert_run(store, run)
 
     json_path.write_text(json.dumps(store, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

@@ -33,7 +33,10 @@ sMIA 参考（retain90 各 MIA AUC），供人工核对。
     --init-summary  PATH   init-finetuned（full）模型 summary，默认 saves/eval/.../full/evals_forget10
     --retain-summary PATH  retain90 模型 summary（sMIA 参考），默认 saves/eval/.../retain90
     --s-mia-theta   FLOAT sMIA 映射参数 theta（默认 9.05）
+    --s-mia-mode    STR   symmetric（默认，1/(1+theta*|dev|)，与 e9e9ab2 校准一致）
+                          或 piecewise（dev>0 过遗忘侧用 exp(-theta*dev)，仅归因实验用）
     --assume-fluency FLOAT 缺 forget_Q_A_gibberish 时用该值占位（默认 None=报错），仅供校准
+    --json          PATH  额外把完整结果（四维 + 分量 + 分母 + sMIA 参考）写成 JSON，供批量落盘
 """
 
 import argparse
@@ -117,20 +120,26 @@ def tr_ou(eval_logs):
     return sum(1.0 / (1.0 + s) for s in scores) / len(scores)
 
 
-def s_mia(auc_target, auc_retain, theta=S_MIA_THETA):
+def s_mia(auc_target, auc_retain, theta=S_MIA_THETA, mode="symmetric"):
     """sMIA：privleak 风格相对偏差映射到 [0,1]（与 retain 金标准的接近度）。
 
     dev = (auc_retain - auc_target) / (1 - auc_retain)
       dev < 0：泄露侧（target 的 AUC 高于 retain，记忆残留）
       dev > 0：过遗忘侧（target 的 AUC 低于 retain）
-    s   = 1 / (1 + theta * |dev|)
+    s   = 1 / (1 + theta * |dev|)          # mode=symmetric（默认）
     恒等性：target == retain 时 dev = 0 -> s = 1（Retain -> Priv = 1.00）。
+
+    mode=piecewise（仅归因实验，非默认）：过遗忘侧 dev>0 改用 exp(-theta*dev)，
+    惩罚更重，用于验证 GradDiff 这类过遗忘方法能否对齐论文的极低 Priv 值。
     """
     ar = float(auc_retain)
     at = float(auc_target)
     if ar >= 1.0:  # retain AUC = 1 时除数为 0，退化处理
         return 0.0 if at < 1.0 else 1.0
     dev = (ar - at) / (1.0 - ar)
+    if mode == "piecewise" and dev > 0:
+        import math
+        return math.exp(-theta * dev)
     return 1.0 / (1.0 + theta * abs(dev))
 
 
@@ -138,7 +147,7 @@ def s_mia(auc_target, auc_retain, theta=S_MIA_THETA):
 # 主聚合
 # ----------------------------------------------------------------------------
 def aggregate(target, init_sum, retain_sum, target_eval, init_eval, retain_eval,
-              theta=S_MIA_THETA, assume_fluency=None):
+              theta=S_MIA_THETA, assume_fluency=None, s_mia_mode="symmetric"):
     """计算四维分数，返回 (result, denominators, retain_refs, fluency)。"""
     # -- 归一化分母（init-finetuned 各指标值，供人工核对） ---------------------
     denominators = {
@@ -185,7 +194,8 @@ def aggregate(target, init_sum, retain_sum, target_eval, init_eval, retain_eval,
             raise KeyError(f"retain90 缺少 {a} 参考 AUC（Priv 必须的 sMIA 参考）")
         retain_refs[a] = v
     priv = hmean([
-        s_mia(g(target, target_eval, a), retain_refs[a], theta) for a in MIA_ATTACKS
+        s_mia(g(target, target_eval, a), retain_refs[a], theta, s_mia_mode)
+        for a in MIA_ATTACKS
     ])
 
     # -- Utility ---------------------------------------------------------------
@@ -220,9 +230,16 @@ def aggregate(target, init_sum, retain_sum, target_eval, init_eval, retain_eval,
                 "1 - norm(ParaProb)": 1 - pp_n,
                 "1 - norm(TR)": 1 - tr_n,
             },
-            "priv": {a: s_mia(g(target, target_eval, a), retain_refs[a], theta) for a in MIA_ATTACKS},
+            "priv": {
+                a: s_mia(g(target, target_eval, a), retain_refs[a], theta, s_mia_mode)
+                for a in MIA_ATTACKS
+            },
             "utility": {"norm(MU)": mu_n, "norm(Fluency)": flu_n},
         },
+        "denominators": denominators,
+        "retain_refs": retain_refs,
+        "fluency": fluency,
+        "params": {"s_mia_theta": theta, "s_mia_mode": s_mia_mode},
     }
     return result, denominators, retain_refs, fluency
 
@@ -242,8 +259,12 @@ def build_parser():
                    help="retain90 模型 TOFU_SUMMARY.json（sMIA 参考）")
     p.add_argument("--s-mia-theta", type=float, default=S_MIA_THETA,
                    help="sMIA 映射参数 theta")
+    p.add_argument("--s-mia-mode", choices=["symmetric", "piecewise"], default="symmetric",
+                   help="sMIA 映射模式（默认 symmetric，与 e9e9ab2 校准一致）")
     p.add_argument("--assume-fluency", type=float, default=None,
                    help="缺 forget_Q_A_gibberish 时的 Fluency 占位值（仅供校准）")
+    p.add_argument("--json", dest="json_out", default=None,
+                   help="额外把完整结果写成 JSON（供批量流程落盘）")
     return p
 
 
@@ -265,7 +286,19 @@ def main():
     result, denominators, retain_refs, fluency = aggregate(
         target, init_sum, retain_sum, target_eval, init_eval, retain_eval,
         theta=args.s_mia_theta, assume_fluency=args.assume_fluency,
+        s_mia_mode=args.s_mia_mode,
     )
+
+    if args.json_out:
+        payload = dict(result)
+        payload["inputs"] = {
+            "target_summary": args.target_summary,
+            "init_summary": args.init_summary,
+            "retain_summary": args.retain_summary,
+        }
+        with open(args.json_out, "w") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+        print(f"[json] 已写入 {args.json_out}")
 
     print("\n================ OU Table 3 四维结果 ================")
     for k in ["Mem", "Priv", "Utility", "Agg"]:

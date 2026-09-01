@@ -36,7 +36,7 @@
 
 | 路径 / 状态 | 说明 |
 |-------------|------|
-| `/usr/local/open-unlearning` | 本仓库已浅克隆（`--depth 1`），分支 `feature/chenyliao_20260824`，提交 `39ef2d1`。**在 30GB 系统盘上，应迁到数据盘** |
+| `/usr/local/open-unlearning` | **本仓库唯一副本**（`repro/ou-table3` @ `e9e9ab2`）。位于 30GB 系统盘（剩约 16GB），所以**代码之外的一切都要写到 `/root/autodl-tmp`**：`HF_HOME`、`saves/`、`logs/`、每条命令的 `paths.output_dir`。数据盘上的重复副本 `/root/autodl-tmp/open-unlearning` 已于 2026-09-01 删除（删前已确认零独有内容），**不要再克隆第二份** |
 | `/usr/local/Unlearn-Simple` | 另一套旧实验代码；conda **base** 正在给它用（`transformers==4.46.3`、`torch==2.8.0+cu128`） |
 | `/root/autodl-tmp/env_hf.sh` | HF 镜像、缓存路径、token、修正 `OMP_NUM_THREADS` |
 | `/root/autodl-tmp/huggingface` | `HF_HOME`，约 **51GB**。已有 `locuslab/TOFU` 数据集、`NousResearch/Llama-2-7b*`、`locuslab/tofu_ft_llama2-7b`。**没有** `open-unlearning/tofu_Llama-3.2-1B-Instruct_*`，首次跑本仓库 1B 仍要下模型 |
@@ -79,22 +79,18 @@ mkdir -p $DATA/open-unlearning $DATA/saves $DATA/envs
 - `HUGGINGFACE_HUB_CACHE=$HF_HOME/hub`（必须是 `hub` 子目录，否则会绕开已有 51GB 缓存）
 - `OMP_NUM_THREADS=8`（覆盖镜像里过小的 OpenMP 值）
 
-### 把仓库放到数据盘
+### 仓库位置：唯一副本 `/usr/local/open-unlearning`
 
-当前 clone 在 `/usr/local/open-unlearning`（系统盘）。迁一次即可：
+数据盘上的重复副本已于 2026-09-01 删除（删前已确认两份 tracked 文件零差异、且无独有未跟踪文件）。**不要再克隆第二份**——两份副本必然导致「改 A 跑 B」。
 
-```bash
-# 若目标目录还是空的 mkdir
-mv /usr/local/open-unlearning /root/autodl-tmp/open-unlearning
-cd /root/autodl-tmp/open-unlearning
-```
-
-之后一律：
+一律：
 
 ```bash
-export DATA=/root/autodl-tmp
-cd $DATA/open-unlearning
+cd /usr/local/open-unlearning
+export DATA=/root/autodl-tmp       # 只放数据与产物，不放代码
 ```
+
+因为仓库在系统盘（剩约 16GB），**代码之外的一切都写到 `$DATA`**：`HF_HOME=$DATA/huggingface`、`saves/`（仓库内 `saves` 已软链到 `$DATA/saves`）、`logs/`、以及每条命令里的 `paths.output_dir=$DATA/saves/...`。
 
 浅克隆若以后需要完整历史：
 
@@ -137,7 +133,7 @@ conda 只有 **base**，且 base 已给 `/usr/local/Unlearn-Simple` 使用（实
 ```bash
 source /root/autodl-tmp/env_hf.sh
 export DATA=/root/autodl-tmp
-cd $DATA/open-unlearning
+cd /usr/local/open-unlearning
 
 python3 -m venv $DATA/envs/unlearning
 source $DATA/envs/unlearning/bin/activate
@@ -192,7 +188,7 @@ python src/train.py --config-name=unlearn.yaml experiment=unlearn/tofu/default \
 
 ```bash
 source /root/autodl-tmp/env_hf.sh
-cd /root/autodl-tmp/open-unlearning
+cd /usr/local/open-unlearning
 python setup_data.py --eval_logs    # → saves/eval/ 下 TOFU / MUSE 的 retain、finetuned JSON
 python setup_data.py --idk          # DPO / Idk 需要 data/idk.jsonl
 # python setup_data.py --wmdp       # 仅跑 WMDP 时需要；会 wget zip 并用密码 unzip
@@ -262,7 +258,7 @@ PDU / SatImp / WGA / CE-U 未进入 Table 3；核心方法跑完再按社区 REA
 ```bash
 source /root/autodl-tmp/env_hf.sh
 source /root/autodl-tmp/envs/unlearning/bin/activate
-cd /root/autodl-tmp/open-unlearning
+cd /usr/local/open-unlearning
 
 export MASTER_PORT=$(python -c "import socket; s=socket.socket(); s.bind(('', 0)); print(s.getsockname()[1]); s.close()")
 export PATH=/usr/local/cuda/bin:$PATH
@@ -386,7 +382,7 @@ bash scripts/muse_unlearn.sh
 
 - [ ] AutoDL **已开机挂卡**；`nvidia-smi -L` 能看到 GPU（历史预期 2× A800）；`torch.cuda.device_count()` 与卡数一致
 - [ ] 每个新 shell：`source /root/autodl-tmp/env_hf.sh`
-- [ ] 仓库已从 `/usr/local/open-unlearning` **迁到** `/root/autodl-tmp/open-unlearning`
+- [ ] 仓库唯一副本在 `/usr/local/open-unlearning`（数据盘重复副本已删除，不要再克隆第二份）；所有产物写到 `/root/autodl-tmp`
 - [ ] 独立 venv `$DATA/envs/unlearning`，**没有**在 conda base 里覆盖 Unlearn-Simple
 - [ ] `torch` 仍为 **2.8.x + CUDA**；`flash-attn` 用数据盘 wheel 或已准备去掉 flash attention 的命令
 - [ ] `python setup_data.py --eval_logs`（DPO 再加 `--idk`）

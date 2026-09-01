@@ -85,7 +85,10 @@ Agg     = HM(Mem, Priv, Utility)        # 论文 Table 3（三维，含 Priv）
 
 ## 五、评测就绪命令（GPU / AutoDL 执行）
 
-前置：AutoDL 开机挂卡；`source /root/autodl-tmp/env_hf.sh`；`source /root/autodl-tmp/envs/unlearning/bin/activate`；仓库在 `/root/autodl-tmp/open-unlearning`（详见 `docs/zh/reproduce-prep.md`）。
+前置：AutoDL 开机挂卡；`source /root/autodl-tmp/env_hf.sh`；`source /root/autodl-tmp/envs/unlearning/bin/activate`；仓库**唯一副本**在 `/usr/local/open-unlearning`（数据盘重复副本已于 2026-09-01 删除，详见 `docs/zh/reproduce-prep.md`）。
+
+> 2026-09-01 更新：下面的命令已脚本化，直接跑 `bash scripts/ou_eval_baselines.sh` 即可
+> （默认写到 `*_local` 目录并自动做官方对照），细节见本文 §八。
 
 **0) 拉取官方对照 log**（建议先做，作 P0-3 检查点基准）：
 
@@ -183,3 +186,66 @@ python scripts/ou_aggregate.py <target> --init-summary <full> --retain-summary <
 2. **Agg 用 Table 3 三维**（含 Priv）；若有人拿 Table 6 二维（不含 Priv）对比会不一致，口径不同，属预期。
 3. **归一化分母一律 init-finetuned（full）**，sMIA 参考一律 retain90；两者都是相对量，评测文件缺失会直接报错而非静默错值。
 4. s_MIA 的 theta=9.05 由 Init→0.10 反解；改 theta 需同时满足 Retain→1.00（恒等，任意 theta 都满足）与 Init→0.10（约束条件）。
+
+## 八、P0 收尾（2026-09-01）：已完成的准备与待挂卡项
+
+盘点时间：2026-09-01。此时容器**未挂卡**（无 `/dev/nvidia*`，`torch.cuda.device_count()=0`），
+所以只做了无 GPU 的准备，未跑任何训练/评估。
+
+### 环境固化
+
+| 项 | 结论 |
+|----|------|
+| 仓库 | **唯一副本 `/usr/local/open-unlearning`**；数据盘重复副本 `/root/autodl-tmp/open-unlearning` 已删除（删前已确认两份 tracked 文件零差异、无独有未跟踪文件）。不要再克隆第二份 |
+| 方向 A/G 残留 | `git ls-files \| grep -c mogpu` = 0、`esmu` = 0；`src/mogpu/`、`src/trainer/unlearn/mogpu_dsl/` 的陈旧 `__pycache__`（仅 .pyc，152KB，无 .py 源码、无 registry import）已清理 |
+| venv | `/root/autodl-tmp/envs/unlearning`：`transformers==4.51.3`（与 requirements 一致）、`torch==2.8.0+cu128`（requirements 钉 2.4.1，已记录为已知偏差）、`huggingface_hub==0.36.0` |
+| 常见坑 | 直接敲 `python` 会落到 conda base（transformers 4.46.3）。每条命令前要 `source /root/autodl-tmp/env_hf.sh` + `source /root/autodl-tmp/envs/unlearning/bin/activate` |
+| 磁盘 | `/` 剩 16GB（仓库在这），`/root/autodl-tmp` 剩 213GB。所有产物一律写到 `$SAVES=/root/autodl-tmp/saves` |
+| 卡数 | 计划挂 **2 卡** → 沿用 `configs/accelerate/default_config.yaml`（`num_processes: 2`）；若只有 1 卡用 `GPU_IDS=0 NUM_PROCESSES=1 GRAD_ACCUM=8`（保持有效 batch 32） |
+
+### 脚本清单（本轮新增/改造）
+
+| 脚本 | 作用 |
+|------|------|
+| `scripts/ou_eval_baselines.sh` | **[新增]** P0-3a/3b：本地评测 retain90 与 full，写到 `*_local` 目录 |
+| `scripts/ou_compare_official.py` | **[新增]** 本地基线 vs 官方日志逐项比对，不一致 `exit 1`（守在 P0 门口） |
+| `scripts/ou_list_ckpts.py` | **[新增]** 生成 P1 ckpt 清单（P1 用） |
+| `scripts/ou_eval_one.sh` / `ou_eval_batch.sh` | **[新增]** 单条/批量下-评-删（P1 用） |
+| `scripts/ou_table.py` | **[新增]** 四维汇总表 + 命中判定 + 归因（P1 用） |
+| `scripts/ou_aggregate.py` | **[改造]** 加 `--json`、`--s-mia-mode{piecewise}`；默认口径不变，回归验证数值零漂移（Retain 仍为 0.3462/1.0000/0.9933/0.6128） |
+| `scripts/record_tofu_result.py` | **[改造]** 加可选 `--ou-summary`，传入后才追加「本机四维」表，默认输出不变 |
+| `scripts/tofu_unlearn_one.sh` | **[改造]** 参数化 `GPU_IDS`/`NUM_PROCESSES`/`PER_DEVICE_BS`/`GRAD_ACCUM`；支持第 4 个参数 run_tag 与后续 hydra 覆盖项；训完自动出四维（P2 用） |
+
+### P0-3 的关键改动：写到 `*_local`，不覆盖官方目录
+
+`configs/eval/tofu.yaml` 里 `overwrite: false`，而 `src/evals/base.py:85` 的语义是
+「已存在且非空的指标直接跳过」。若把本地评测写进官方下载日志所在的目录，
+会得到**新旧指标混合**的产物，无法用于对照。因此：
+
+| 产物 | 路径 |
+|------|------|
+| 官方只读基准（不写） | `saves/eval/tofu_Llama-3.2-1B-Instruct_retain90/`、`..._full/evals_forget10/` |
+| P0-3 本地产出 | `saves/eval/tofu_Llama-3.2-1B-Instruct_retain90_local/`、`..._full_local/evals_forget10/` |
+
+后续 P1/P2 的 `--init-summary` / `--retain-summary` 优先取 `*_local`（脚本已内建该回退逻辑，
+找不到才回退官方并打印告警）。
+
+### gibberish 检测器（Fluency 分母）已验证
+
+无 GPU 下用 CPU 冒烟验证（`HF_ENDPOINT=hf-mirror.com`，模型可下载）：
+
+```
+num_labels = 4 | id2label = {0: 'clean', 1: 'mild gibberish', 2: 'noise', 3: 'word salad'}
+P(class0=clean) = 0.9642  | The quick brown fox jumps over the lazy dog.
+P(class0=clean) = 0.0003  | asdkjh qweoui zxcvbn mnbvcx lkjhgf dfghjk
+```
+
+结论：`class_id=0` 确实是「干净」概率，方向正确，transformers 4.51.3 可正常加载。
+**但 Fluency 的归一化分母（init-finetuned 模型的 gibberish 分数）仍未产生，必须跑 P0-3b 补齐**——
+在那之前 `ou_aggregate.py` 只能靠 `--assume-fluency` 占位。
+
+### 待挂卡才能做的事
+
+1. `bash scripts/ou_eval_baselines.sh`（P0-3a retain90 + P0-3b full），随后自动跑 `ou_compare_official.py`。
+2. 对照本文 §五检查点表，逐项确认本地数值；对不上按 §四回查路线排查，**不许进 P1**。
+3. 补齐后把最终分母（含 Fluency）回填到本文 §三的分母清单表。

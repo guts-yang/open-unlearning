@@ -1,0 +1,1033 @@
+{
+  "generated_at": "2026-09-01T11:31:37+08:00",
+  "head": "e9e9ab2bb01b5908462fbe79e93d5b2c3a366d1a",
+  "search": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10",
+  "model": "Llama-3.2-1B-Instruct",
+  "forget_split": "forget10",
+  "matched_unlearn": 398,
+  "matched_aux": 30,
+  "methods": {
+    "AltPO": {
+      "available": 54,
+      "quota": 4,
+      "selected": 4,
+      "note": ""
+    },
+    "GradAscent": {
+      "available": 0,
+      "quota": 4,
+      "selected": 0,
+      "note": "官方无该方法的 forget10 ckpt（398 个中不存在）"
+    },
+    "GradDiff": {
+      "available": 40,
+      "quota": 8,
+      "selected": 8,
+      "note": ""
+    },
+    "IdkDPO": {
+      "available": 54,
+      "quota": 4,
+      "selected": 4,
+      "note": ""
+    },
+    "IdkNLL": {
+      "available": 40,
+      "quota": 4,
+      "selected": 4,
+      "note": ""
+    },
+    "NPO": {
+      "available": 54,
+      "quota": 8,
+      "selected": 8,
+      "note": ""
+    },
+    "RMU": {
+      "available": 54,
+      "quota": 54,
+      "selected": 54,
+      "note": ""
+    },
+    "SimNPO": {
+      "available": 48,
+      "quota": 48,
+      "selected": 48,
+      "note": ""
+    },
+    "UNDIAL": {
+      "available": 54,
+      "quota": 8,
+      "selected": 8,
+      "note": ""
+    }
+  },
+  "ckpts": [
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.05_alpha1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.05_alpha1_epoch10",
+      "method": "AltPO",
+      "hyper": "lr1e-05_beta0.05_alpha1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.05_alpha1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.05_alpha1_epoch10",
+      "method": "AltPO",
+      "hyper": "lr2e-05_beta0.05_alpha1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.5_alpha5_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.5_alpha5_epoch5",
+      "method": "AltPO",
+      "hyper": "lr2e-05_beta0.5_alpha5_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.5_alpha5_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.5_alpha5_epoch5",
+      "method": "AltPO",
+      "hyper": "lr5e-05_beta0.5_alpha5_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha5_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha5_epoch10",
+      "method": "GradDiff",
+      "hyper": "lr1e-05_alpha5_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha10_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha10_epoch10",
+      "method": "GradDiff",
+      "hyper": "lr1e-05_alpha10_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha5_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha5_epoch5",
+      "method": "GradDiff",
+      "hyper": "lr1e-05_alpha5_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr2e-05_alpha5_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr2e-05_alpha5_epoch10",
+      "method": "GradDiff",
+      "hyper": "lr2e-05_alpha5_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr3e-05_alpha2_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr3e-05_alpha2_epoch10",
+      "method": "GradDiff",
+      "hyper": "lr3e-05_alpha2_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr4e-05_alpha1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr4e-05_alpha1_epoch10",
+      "method": "GradDiff",
+      "hyper": "lr4e-05_alpha1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr5e-05_alpha10_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr5e-05_alpha10_epoch5",
+      "method": "GradDiff",
+      "hyper": "lr5e-05_alpha10_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr5e-05_alpha5_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr5e-05_alpha5_epoch5",
+      "method": "GradDiff",
+      "hyper": "lr5e-05_alpha5_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr1e-05_beta0.05_alpha1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr1e-05_beta0.05_alpha1_epoch10",
+      "method": "IdkDPO",
+      "hyper": "lr1e-05_beta0.05_alpha1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr2e-05_beta0.05_alpha1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr2e-05_beta0.05_alpha1_epoch10",
+      "method": "IdkDPO",
+      "hyper": "lr2e-05_beta0.05_alpha1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr2e-05_beta0.5_alpha5_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr2e-05_beta0.5_alpha5_epoch5",
+      "method": "IdkDPO",
+      "hyper": "lr2e-05_beta0.5_alpha5_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr5e-05_beta0.5_alpha5_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr5e-05_beta0.5_alpha5_epoch5",
+      "method": "IdkDPO",
+      "hyper": "lr5e-05_beta0.5_alpha5_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr1e-05_alpha10_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr1e-05_alpha10_epoch10",
+      "method": "IdkNLL",
+      "hyper": "lr1e-05_alpha10_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr2e-05_alpha2_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr2e-05_alpha2_epoch5",
+      "method": "IdkNLL",
+      "hyper": "lr2e-05_alpha2_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr4e-05_alpha1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr4e-05_alpha1_epoch10",
+      "method": "IdkNLL",
+      "hyper": "lr4e-05_alpha1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr5e-05_alpha5_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr5e-05_alpha5_epoch5",
+      "method": "IdkNLL",
+      "hyper": "lr5e-05_alpha5_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.05_alpha1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.05_alpha1_epoch10",
+      "method": "NPO",
+      "hyper": "lr1e-05_beta0.05_alpha1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.1_alpha2_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.1_alpha2_epoch10",
+      "method": "NPO",
+      "hyper": "lr1e-05_beta0.1_alpha2_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.5_alpha2_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.5_alpha2_epoch5",
+      "method": "NPO",
+      "hyper": "lr1e-05_beta0.5_alpha2_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.05_alpha5_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.05_alpha5_epoch5",
+      "method": "NPO",
+      "hyper": "lr2e-05_beta0.05_alpha5_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.5_alpha1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.5_alpha1_epoch10",
+      "method": "NPO",
+      "hyper": "lr2e-05_beta0.5_alpha1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.05_alpha2_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.05_alpha2_epoch10",
+      "method": "NPO",
+      "hyper": "lr5e-05_beta0.05_alpha2_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha2_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha2_epoch5",
+      "method": "NPO",
+      "hyper": "lr5e-05_beta0.1_alpha2_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.5_alpha5_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.5_alpha5_epoch5",
+      "method": "NPO",
+      "hyper": "lr5e-05_beta0.5_alpha5_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff100_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff100_epoch10",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer10_scoeff100_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff100_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff100_epoch5",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer10_scoeff100_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff10_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff10_epoch10",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer10_scoeff10_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff10_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff10_epoch5",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer10_scoeff10_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff1_epoch10",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer10_scoeff1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff1_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff1_epoch5",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer10_scoeff1_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff100_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff100_epoch10",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer15_scoeff100_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff100_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff100_epoch5",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer15_scoeff100_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff10_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff10_epoch10",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer15_scoeff10_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff10_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff10_epoch5",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer15_scoeff10_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff1_epoch10",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer15_scoeff1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff1_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff1_epoch5",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer15_scoeff1_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff100_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff100_epoch10",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer5_scoeff100_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff100_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff100_epoch5",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer5_scoeff100_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff10_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff10_epoch10",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer5_scoeff10_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff10_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff10_epoch5",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer5_scoeff10_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff1_epoch10",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer5_scoeff1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff1_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff1_epoch5",
+      "method": "RMU",
+      "hyper": "lr1e-05_layer5_scoeff1_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff100_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff100_epoch10",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer10_scoeff100_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff100_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff100_epoch5",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer10_scoeff100_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff10_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff10_epoch10",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer10_scoeff10_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff10_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff10_epoch5",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer10_scoeff10_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff1_epoch10",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer10_scoeff1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff1_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff1_epoch5",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer10_scoeff1_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff100_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff100_epoch10",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer15_scoeff100_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff100_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff100_epoch5",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer15_scoeff100_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff10_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff10_epoch10",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer15_scoeff10_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff10_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff10_epoch5",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer15_scoeff10_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff1_epoch10",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer15_scoeff1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff1_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff1_epoch5",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer15_scoeff1_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff100_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff100_epoch10",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer5_scoeff100_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff100_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff100_epoch5",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer5_scoeff100_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff10_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff10_epoch10",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer5_scoeff10_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff10_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff10_epoch5",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer5_scoeff10_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff1_epoch10",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer5_scoeff1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff1_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff1_epoch5",
+      "method": "RMU",
+      "hyper": "lr2e-05_layer5_scoeff1_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff100_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff100_epoch10",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer10_scoeff100_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff100_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff100_epoch5",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer10_scoeff100_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff10_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff10_epoch10",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer10_scoeff10_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff10_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff10_epoch5",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer10_scoeff10_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff1_epoch10",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer10_scoeff1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff1_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff1_epoch5",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer10_scoeff1_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff100_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff100_epoch10",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer15_scoeff100_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff100_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff100_epoch5",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer15_scoeff100_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff10_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff10_epoch10",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer15_scoeff10_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff10_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff10_epoch5",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer15_scoeff10_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff1_epoch10",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer15_scoeff1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff1_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff1_epoch5",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer15_scoeff1_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff100_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff100_epoch10",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer5_scoeff100_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff100_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff100_epoch5",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer5_scoeff100_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff10_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff10_epoch10",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer5_scoeff10_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff10_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff10_epoch5",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer5_scoeff10_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff1_epoch10",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer5_scoeff1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff1_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff1_epoch5",
+      "method": "RMU",
+      "hyper": "lr5e-05_layer5_scoeff1_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d0_g0.125_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d0_g0.125_ep10",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b4.5_a1_d0_g0.125_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.25_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.25_ep10",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b3.5_a1_d1_g0.25_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d0_g0.125_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d0_g0.125_ep10",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b3.5_a1_d0_g0.125_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d0_g0.125_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d0_g0.125_ep5",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b3.5_a1_d0_g0.125_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d0_g0.25_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d0_g0.25_ep10",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b3.5_a1_d0_g0.25_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d0_g0.25_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d0_g0.25_ep5",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b3.5_a1_d0_g0.25_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.125_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.125_ep10",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b3.5_a1_d1_g0.125_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.125_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.125_ep5",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b3.5_a1_d1_g0.125_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.25_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.25_ep10",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b3.5_a1_d1_g0.25_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.25_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.25_ep5",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b3.5_a1_d1_g0.25_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d0_g0.125_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d0_g0.125_ep5",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b4.5_a1_d0_g0.125_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d0_g0.25_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d0_g0.25_ep10",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b4.5_a1_d0_g0.25_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d0_g0.25_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d0_g0.25_ep5",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b4.5_a1_d0_g0.25_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.125_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.125_ep10",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b4.5_a1_d1_g0.125_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.125_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.125_ep5",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b4.5_a1_d1_g0.125_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.25_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.25_ep10",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b4.5_a1_d1_g0.25_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.25_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.25_ep5",
+      "method": "SimNPO",
+      "hyper": "lr1e-05_b4.5_a1_d1_g0.25_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d0_g0.125_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d0_g0.125_ep10",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b3.5_a1_d0_g0.125_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d0_g0.125_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d0_g0.125_ep5",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b3.5_a1_d0_g0.125_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d0_g0.25_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d0_g0.25_ep10",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b3.5_a1_d0_g0.25_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d0_g0.25_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d0_g0.25_ep5",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b3.5_a1_d0_g0.25_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.125_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.125_ep10",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b3.5_a1_d1_g0.125_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.125_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.125_ep5",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b3.5_a1_d1_g0.125_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.25_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.25_ep5",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b3.5_a1_d1_g0.25_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d0_g0.125_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d0_g0.125_ep10",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b4.5_a1_d0_g0.125_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d0_g0.125_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d0_g0.125_ep5",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b4.5_a1_d0_g0.125_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d0_g0.25_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d0_g0.25_ep10",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b4.5_a1_d0_g0.25_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d0_g0.25_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d0_g0.25_ep5",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b4.5_a1_d0_g0.25_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d1_g0.125_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d1_g0.125_ep10",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b4.5_a1_d1_g0.125_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d1_g0.125_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d1_g0.125_ep5",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b4.5_a1_d1_g0.125_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d1_g0.25_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d1_g0.25_ep10",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b4.5_a1_d1_g0.25_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d1_g0.25_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d1_g0.25_ep5",
+      "method": "SimNPO",
+      "hyper": "lr2e-05_b4.5_a1_d1_g0.25_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d0_g0.125_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d0_g0.125_ep10",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b3.5_a1_d0_g0.125_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d0_g0.125_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d0_g0.125_ep5",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b3.5_a1_d0_g0.125_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d0_g0.25_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d0_g0.25_ep10",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b3.5_a1_d0_g0.25_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d0_g0.25_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d0_g0.25_ep5",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b3.5_a1_d0_g0.25_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.125_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.125_ep10",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b3.5_a1_d1_g0.125_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.125_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.125_ep5",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b3.5_a1_d1_g0.125_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.25_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.25_ep10",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b3.5_a1_d1_g0.25_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.25_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.25_ep5",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b3.5_a1_d1_g0.25_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d0_g0.125_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d0_g0.125_ep10",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b4.5_a1_d0_g0.125_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d0_g0.125_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d0_g0.125_ep5",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b4.5_a1_d0_g0.125_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d0_g0.25_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d0_g0.25_ep10",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b4.5_a1_d0_g0.25_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d0_g0.25_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d0_g0.25_ep5",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b4.5_a1_d0_g0.25_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.125_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.125_ep10",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b4.5_a1_d1_g0.125_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.125_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.125_ep5",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b4.5_a1_d1_g0.125_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.25_ep10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.25_ep10",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b4.5_a1_d1_g0.25_ep10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.25_ep5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.25_ep5",
+      "method": "SimNPO",
+      "hyper": "lr5e-05_b4.5_a1_d1_g0.25_ep5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta10_alpha1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta10_alpha1_epoch10",
+      "method": "UNDIAL",
+      "hyper": "lr1e-05_beta10_alpha1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta30_alpha2_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta30_alpha2_epoch10",
+      "method": "UNDIAL",
+      "hyper": "lr1e-05_beta30_alpha2_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta3_alpha2_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta3_alpha2_epoch5",
+      "method": "UNDIAL",
+      "hyper": "lr1e-05_beta3_alpha2_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha5_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha5_epoch5",
+      "method": "UNDIAL",
+      "hyper": "lr0.0001_beta10_alpha5_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta3_alpha1_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta3_alpha1_epoch10",
+      "method": "UNDIAL",
+      "hyper": "lr0.0001_beta3_alpha1_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta10_alpha2_epoch10",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta10_alpha2_epoch10",
+      "method": "UNDIAL",
+      "hyper": "lr0.0003_beta10_alpha2_epoch10",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta30_alpha2_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta30_alpha2_epoch5",
+      "method": "UNDIAL",
+      "hyper": "lr0.0003_beta30_alpha2_epoch5",
+      "status": "pending"
+    },
+    {
+      "repo_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta3_alpha5_epoch5",
+      "name": "unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta3_alpha5_epoch5",
+      "method": "UNDIAL",
+      "hyper": "lr0.0003_beta3_alpha5_epoch5",
+      "status": "pending"
+    }
+  ]
+}

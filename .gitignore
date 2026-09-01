@@ -15,6 +15,11 @@ output*/
 wandb/
 data/
 !*/data/ 
+# TPO 的 UW/GW 标注数据必须入库：换机器重新 clone 后 TPO 才能直接跑。
+# prepare_data.py 只是从官方仓库做一次性转换的脚本，转换结果要进版本控制。
+# git 规则：父目录被 data/ 排除后，必须先否定目录本身，才能重新包含目录里的文件。
+!community/methods/TPO/data/
+!community/methods/TPO/data/**
 evals/
 !*/evals/  
 # Byte-compiled / optimized / DLL files

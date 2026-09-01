@@ -58,16 +58,34 @@ eval_one () {   # $1=HF 模型名  $2=输出目录  $3=retain_logs_path（可为
 
 case "$TARGET" in
   retain90)
-    # retain 自己作自己的参考（得到 privleak=0 参考系；sMIA 用它作基线）
-    eval_one "$RETAIN_HF" "$RETAIN_DIR" "$RETAIN_DIR/TOFU_EVAL.json"
+    # retain90 自评：优先用已有的本地日志作参考（重跑时口径一致）；
+    # 首次运行时本地日志还不存在，必须回退官方 retain90 日志，
+    # 否则 retain_logs_path 指向一个尚不存在的文件，privleak 读不到参考会直接报错。
+    if [[ -f "$RETAIN_DIR/TOFU_EVAL.json" ]]; then
+      eval_one "$RETAIN_HF" "$RETAIN_DIR" "$RETAIN_DIR/TOFU_EVAL.json"
+    else
+      echo "[info] 首次评测 retain90，用官方 retain90 日志作 privleak 参考"
+      eval_one "$RETAIN_HF" "$RETAIN_DIR" "$SAVES/eval/tofu_${MODEL}_retain90/TOFU_EVAL.json"
+    fi
     ;;
   full)
-    eval_one "$MODEL_HF" "$FULL_DIR" "$RETAIN_DIR/TOFU_EVAL.json"
+    # full 用本地 retain90 作参考（sMIA 参考系）；没跑过 retain90 就回退官方
+    if [[ -f "$RETAIN_DIR/TOFU_EVAL.json" ]]; then
+      eval_one "$MODEL_HF" "$FULL_DIR" "$RETAIN_DIR/TOFU_EVAL.json"
+    else
+      echo "[warn] 本地 retain90 日志不存在，回退官方；建议先跑 retain90"
+      eval_one "$MODEL_HF" "$FULL_DIR" "$SAVES/eval/tofu_${MODEL}_retain90/TOFU_EVAL.json"
+    fi
     ;;
   compare)
     ;;
   all)
-    eval_one "$RETAIN_HF" "$RETAIN_DIR" "$RETAIN_DIR/TOFU_EVAL.json"
+    if [[ -f "$RETAIN_DIR/TOFU_EVAL.json" ]]; then
+      eval_one "$RETAIN_HF" "$RETAIN_DIR" "$RETAIN_DIR/TOFU_EVAL.json"
+    else
+      echo "[info] 首次评测 retain90，用官方 retain90 日志作 privleak 参考"
+      eval_one "$RETAIN_HF" "$RETAIN_DIR" "$SAVES/eval/tofu_${MODEL}_retain90/TOFU_EVAL.json"
+    fi
     eval_one "$MODEL_HF" "$FULL_DIR" "$RETAIN_DIR/TOFU_EVAL.json"
     ;;
   *) echo "unknown target: $TARGET (all|retain90|full|compare)"; exit 1 ;;

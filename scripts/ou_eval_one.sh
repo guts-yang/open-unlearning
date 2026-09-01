@@ -110,33 +110,10 @@ python scripts/ou_aggregate.py "$EVAL_DIR/TOFU_SUMMARY.json" \
   --json "$AGG_JSON"
 
 # --- 4) 追加一行到 jsonl（供 ou_table.py 生成汇总表） --------------------------
-python - "$NAME" "$REPO" "$AGG_JSON" "$RUNS" <<'PY'
-import json, sys
-from datetime import datetime
-
-name, repo, agg_path, runs_path = sys.argv[1:5]
-seg = name.split("_")
-method, hyper = (seg[4], "_".join(seg[5:])) if len(seg) >= 6 else ("?", name)
-with open(agg_path) as f:
-    agg = json.load(f)
-rec = {
-    "ts": datetime.now().astimezone().isoformat(timespec="seconds"),
-    "name": name, "repo_id": repo, "method": method, "hyper": hyper,
-    "Mem": agg["Mem"], "Priv": agg["Priv"], "Utility": agg["Utility"], "Agg": agg["Agg"],
-    "components": agg.get("components"), "params": agg.get("params"),
-}
-# 同一 ckpt 重跑时覆盖旧行，保证 jsonl 里一个 ckpt 只有一条
-lines = []
-if __import__("os").path.exists(runs_path):
-    with open(runs_path) as f:
-        lines = [l for l in f if l.strip() and json.loads(l)["name"] != name]
-lines.append(json.dumps(rec, ensure_ascii=False))
-with open(runs_path, "w") as f:
-    f.write("\n".join(lines) + "\n")
-print(f"[jsonl] {runs_path}: {rec['method']} {rec['hyper']} "
-      f"Mem={rec['Mem']:.4f} Priv={rec['Priv']:.4f} "
-      f"Utility={rec['Utility']:.4f} Agg={rec['Agg']:.4f}")
-PY
+# 官方 ckpt 的 method/hyper 由 ou_append_run.py 从 name 解析；与 TPO run.sh 共用同一份逻辑
+python scripts/ou_append_run.py \
+  --name "$NAME" --agg-json "$AGG_JSON" --runs "$RUNS" \
+  --repo-id "$REPO" --source official
 
 # --- 5) 删权重，只留评估产物 --------------------------------------------------
 rm -rf "$MODEL_DIR"

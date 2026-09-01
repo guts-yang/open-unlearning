@@ -364,6 +364,7 @@ bash scripts/muse_unlearn.sh
 |------|------|
 | `nvidia-smi` 无输出 / `torch.cuda.is_available()==False` / 内存只有 2GB | AutoDL **关卡**。控制台开机挂 GPU 后再查 |
 | 系统盘 100% | 仓库和 `HF_HOME`、`saves` 改到 `/root/autodl-tmp` |
+| 删大文件后 `df` 不变 | AutoDL 回收站 `/root/autodl-tmp/.Trash-0/` 滞留（`du -sh /root/autodl-tmp/*` 看不到隐藏目录）。清空 `.Trash-0/files/` 才真正释放；批量删除超 500 条目会被 safe-delete 拦截，需 `ls \| xargs -n 200 rm -rf` 分批 |
 | `huggingface.co` SSL reset / 超时 | `source /root/autodl-tmp/env_hf.sh`，不要直连 Hub |
 | `git clone`：`curl 16` HTTP/2 或 GnuTLS -110 | `git config --global http.version HTTP/1.1`，改浅克隆 |
 | `forget_quality` 异常 / 缺文件 | 检查 `retain_logs_path` 是否指向已下载的 JSON，且 split 配对（forget10↔retain90） |

@@ -1,0 +1,14 @@
+defaults:
+  - GradDiff
+
+handler: TPO
+
+args: # HuggingFace TrainingArguments
+  learning_rate: 1e-5
+  num_train_epochs: 10
+  weight_decay: 0.01
+
+method_args:
+  beta: 0.3
+  alpha: 0.0 # 0.0 = plain TPO (official main results); 1.0 = tpo_grad_diff variant
+  retain_loss_type: NLL

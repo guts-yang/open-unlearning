@@ -49,10 +49,12 @@ class DataCollatorForSupervisedDataset(object):
             attention_mask = input_ids.ne(self.tokenizer.pad_token_id)
             return_dct.update({"input_ids": input_ids})
             return_dct.update({"attention_mask": attention_mask})
-            if "labels" in instances[0]:
-                labels = [instance["labels"] for instance in instances]
-                labels = self._pad_tokens(labels, IGNORE_INDEX)
-                return_dct.update({"labels": labels})
+            # pad all label-like fields (e.g. `labels`, `gw_labels`) with IGNORE_INDEX
+            for key in instances[0].keys():
+                if "labels" in key:
+                    label_instances = [instance[key] for instance in instances]
+                    padded_labels = self._pad_tokens(label_instances, IGNORE_INDEX)
+                    return_dct.update({key: padded_labels})
             if self.index:
                 if self.index in instances[0]:
                     return_dct.update(

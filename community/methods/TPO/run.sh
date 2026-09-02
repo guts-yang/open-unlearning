@@ -10,9 +10,10 @@
 #   bash community/methods/TPO/run.sh forget10 0.23 TPO_b23  # 补搜 beta
 #
 # 可覆盖的环境变量：
-#   GPU_IDS=0  SAVES=/root/autodl-tmp/saves  CLASSIFIER=gpt（官方默认；另一档 bert）
-#   LR=1e-5  EPOCHS=10  PER_DEVICE_BS=16  GRAD_ACCUM=2   # 有效 batch = 16x2 = 32
-#   EXTRA_HYDRA="model.model_args.attn_implementation=sdpa"  # V100 无 FA2
+#   GPU_IDS=0,1  NUM_PROCESSES=2  SAVES=/root/autodl-tmp/saves  CLASSIFIER=gpt
+#   LR=1e-5  EPOCHS=10  PER_DEVICE_BS=4  GRAD_ACCUM=4
+#   # 有效 batch = 4x4x2 = 32（与官方 / 其他方法一致；V100 单卡 16 会 OOM）
+#   EXTRA_HYDRA="model.model_args.attn_implementation=sdpa trainer.args.optim=adamw_torch"
 #
 # 前置：
 #   1. P0-3 本地基线已跑（retain90_local / full_local），否则 Fluency 分母缺失、
@@ -45,19 +46,30 @@ esac
 
 MODEL="${MODEL:-Llama-3.2-1B-Instruct}"
 CLASSIFIER="${CLASSIFIER:-gpt}"
-GPU_IDS="${GPU_IDS:-0}"
+GPU_IDS="${GPU_IDS:-0,1}"
+NUM_PROCESSES="${NUM_PROCESSES:-2}"
+EVAL_GPU="${EVAL_GPU:-${GPU_IDS%%,*}}"
 SAVES="${SAVES:-/root/autodl-tmp/saves}"
 LOG_DIR="${LOG_DIR:-/root/autodl-tmp/logs}"
 LR="${LR:-1e-5}"
 EPOCHS="${EPOCHS:-10}"
-PER_DEVICE_BS="${PER_DEVICE_BS:-16}"
-GRAD_ACCUM="${GRAD_ACCUM:-2}"
+PER_DEVICE_BS="${PER_DEVICE_BS:-4}"
+GRAD_ACCUM="${GRAD_ACCUM:-4}"
 
 EXTRA_HYDRA_ARGS=()
 if [[ -n "${EXTRA_HYDRA:-}" ]]; then
   # shellcheck disable=SC2206
   read -r -a EXTRA_HYDRA_ARGS <<< "${EXTRA_HYDRA}"
 fi
+EXTRA_TRAIN_HYDRA=()
+EXTRA_EVAL_HYDRA=()
+for _h in "${EXTRA_HYDRA_ARGS[@]}"; do
+  if [[ "$_h" == trainer.* ]]; then
+    EXTRA_TRAIN_HYDRA+=("$_h")
+  else
+    EXTRA_EVAL_HYDRA+=("$_h")
+  fi
+done
 
 TASK_NAME="tofu_1B_TPO_${FORGET_SPLIT}${RUN_TAG:+_${RUN_TAG}}"
 CKPT="$SAVES/unlearn/$TASK_NAME"
@@ -87,11 +99,14 @@ export MASTER_PORT
 MASTER_PORT="$(python -c "import socket; s=socket.socket(); s.bind(('', 0)); print(s.getsockname()[1]); s.close()")"
 
 echo "=== [$(date +%F\ %T)] TPO: split=$FORGET_SPLIT beta=$BETA classifier=$CLASSIFIER ==="
-echo "    task=$TASK_NAME  ckpt=$CKPT  batch=${PER_DEVICE_BS}x${GRAD_ACCUM}"
+echo "    task=$TASK_NAME  ckpt=$CKPT  batch=${PER_DEVICE_BS}x${GRAD_ACCUM}x${NUM_PROCESSES}  GPUs=$GPU_IDS"
 
-# --- 训练 --------------------------------------------------------------------
+# --- 训练：Accelerate + DeepSpeed ZeRO-3（与 tofu_unlearn_one.sh 同配置） ------
 # 注意：'~data...name' 必须加引号，否则 bash 会对 ~ 做波浪号展开
-CUDA_VISIBLE_DEVICES="$GPU_IDS" python src/train.py --config-name=unlearn.yaml \
+CUDA_VISIBLE_DEVICES="$GPU_IDS" accelerate launch \
+  --config_file configs/accelerate/default_config.yaml --main_process_port "$MASTER_PORT" \
+  --num_processes="$NUM_PROCESSES" \
+  src/train.py --config-name=unlearn.yaml \
   experiment=unlearn/tofu/default.yaml \
   trainer=TPO \
   task_name="$TASK_NAME" \
@@ -117,11 +132,12 @@ CUDA_VISIBLE_DEVICES="$GPU_IDS" python src/train.py --config-name=unlearn.yaml \
   data.forget.TOFU_QA_forget.args.hf_args.path=json \
   "+data.forget.TOFU_QA_forget.args.hf_args.data_files=$DATA_FILE" \
   data.forget.TOFU_QA_forget.args.hf_args.split=train \
-  "${EXTRA_HYDRA_ARGS[@]}" \
+  "${EXTRA_TRAIN_HYDRA[@]}" \
+  "${EXTRA_EVAL_HYDRA[@]}" \
   2>&1 | tee -a "$LOG_DIR/${TASK_NAME}.log"
 
 # --- 评测 --------------------------------------------------------------------
-CUDA_VISIBLE_DEVICES="$GPU_IDS" python src/eval.py \
+CUDA_VISIBLE_DEVICES="$EVAL_GPU" python src/eval.py \
   experiment=eval/tofu/default.yaml \
   forget_split="$FORGET_SPLIT" holdout_split="$HOLDOUT_SPLIT" \
   model="$MODEL" \
@@ -130,7 +146,7 @@ CUDA_VISIBLE_DEVICES="$GPU_IDS" python src/eval.py \
   model.tokenizer_args.pretrained_model_name_or_path="$CKPT" \
   paths.output_dir="$CKPT/evals" \
   retain_logs_path="$RETAIN_LOGS" \
-  "${EXTRA_HYDRA_ARGS[@]}" \
+  "${EXTRA_EVAL_HYDRA[@]}" \
   2>&1 | tee -a "$LOG_DIR/${TASK_NAME}_eval.log"
 
 # --- 四维聚合 + 落盘 ----------------------------------------------------------
@@ -150,6 +166,14 @@ python scripts/ou_append_run.py \
   --agg-json "$CKPT/evals/ou_aggregate.json" \
   --method TPO --hyper "$HYPER" \
   --source selftrain --ckpt-path "$CKPT"
+
+python scripts/record_tofu_result.py \
+  --summary "$CKPT/evals/TOFU_SUMMARY.json" \
+  --method TPO \
+  --forget-split "$FORGET_SPLIT" \
+  --model "$MODEL" \
+  --ckpt "$CKPT" \
+  --ou-summary "$CKPT/evals/ou_aggregate.json"
 
 echo "[done] TPO $TASK_NAME -> $CKPT"
 df -h "$SAVES" | tail -1

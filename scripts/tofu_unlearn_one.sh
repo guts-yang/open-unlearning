@@ -12,7 +12,8 @@
 # 可覆盖的环境变量（默认值 = 双卡 + 有效 batch 32，与官方设置一致）：
 #   GPU_IDS=0,1  NUM_PROCESSES=2  PER_DEVICE_BS=4  GRAD_ACCUM=4  EVAL_GPU=<GPU_IDS 的第一张>
 #   SAVES=/root/autodl-tmp/saves
-#   EXTRA_HYDRA="model.model_args.attn_implementation=sdpa"  # V100 无 FA2
+#   EXTRA_HYDRA="model.model_args.attn_implementation=sdpa trainer.args.optim=adamw_torch"
+#   # V100：无 FA2；paged_adamw_32bit 依赖的 bitsandbytes 在本环境不可用
 # 单卡用法（保持有效 batch 32）：GPU_IDS=0 NUM_PROCESSES=1 GRAD_ACCUM=8 bash scripts/tofu_unlearn_one.sh ...
 set -euo pipefail
 

@@ -27,6 +27,12 @@ VENV=/root/autodl-tmp/envs/unlearning
 LOG_DIR="${LOG_DIR:-/root/autodl-tmp/logs}"
 GPU="${GPU:-0}"
 MODEL="${MODEL:-Llama-3.2-1B-Instruct}"
+# V100: EXTRA_HYDRA="model.model_args.attn_implementation=sdpa"
+EXTRA_HYDRA_ARGS=()
+if [[ -n "${EXTRA_HYDRA:-}" ]]; then
+  # shellcheck disable=SC2206
+  read -r -a EXTRA_HYDRA_ARGS <<< "${EXTRA_HYDRA}"
+fi
 
 source /root/autodl-tmp/env_hf.sh
 # shellcheck disable=SC1091
@@ -53,7 +59,8 @@ eval_one () {   # $1=HF 模型名  $2=输出目录  $3=retain_logs_path（可为
     model.model_args.pretrained_model_name_or_path="$hf" \
     model.tokenizer_args.pretrained_model_name_or_path="$hf" \
     paths.output_dir="$out" \
-    retain_logs_path="$retain_logs" 2>&1 | tee -a "$LOG_DIR/ou_baseline_$(basename "$out").log"
+    retain_logs_path="$retain_logs" \
+    "${EXTRA_HYDRA_ARGS[@]}" 2>&1 | tee -a "$LOG_DIR/ou_baseline_$(basename "$out").log"
 }
 
 case "$TARGET" in

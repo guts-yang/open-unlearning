@@ -3,6 +3,7 @@ import datasets
 import numpy as np
 import logging
 from typing import List, Dict, Any, Union
+from hf_local import resolve_hf_snapshot
 
 IGNORE_INDEX = -100  # TODO put in common constants
 
@@ -10,6 +11,10 @@ logger = logging.getLogger("data")
 
 
 def load_hf_dataset(path, **kwargs):
+    local = resolve_hf_snapshot(path, kind="datasets")
+    if local != path:
+        logger.info("Using local dataset snapshot %s -> %s", path, local)
+        path = local
     dataset = datasets.load_dataset(path, **kwargs)
     return dataset
 

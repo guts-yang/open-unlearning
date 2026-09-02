@@ -12,6 +12,7 @@
 # 可覆盖的环境变量（默认值 = 双卡 + 有效 batch 32，与官方设置一致）：
 #   GPU_IDS=0,1  NUM_PROCESSES=2  PER_DEVICE_BS=4  GRAD_ACCUM=4  EVAL_GPU=<GPU_IDS 的第一张>
 #   SAVES=/root/autodl-tmp/saves
+#   EXTRA_HYDRA="model.model_args.attn_implementation=sdpa"  # V100 无 FA2
 # 单卡用法（保持有效 batch 32）：GPU_IDS=0 NUM_PROCESSES=1 GRAD_ACCUM=8 bash scripts/tofu_unlearn_one.sh ...
 set -euo pipefail
 
@@ -29,6 +30,11 @@ model="${3:-Llama-3.2-1B-Instruct}"
 run_tag="${4:-}"
 shift $(( $# < 4 ? $# : 4 ))   # 余下的参数全部当作 hydra 覆盖项
 EXTRA_ARGS=("$@")
+EXTRA_HYDRA_ARGS=()
+if [[ -n "${EXTRA_HYDRA:-}" ]]; then
+  # shellcheck disable=SC2206
+  read -r -a EXTRA_HYDRA_ARGS <<< "${EXTRA_HYDRA}"
+fi
 
 # 训练/并行配置（环境变量可覆盖）
 GPU_IDS="${GPU_IDS:-0,1}"
@@ -81,6 +87,7 @@ CUDA_VISIBLE_DEVICES="$GPU_IDS" accelerate launch \
   trainer.args.gradient_accumulation_steps="$GRAD_ACCUM" \
   trainer.args.ddp_find_unused_parameters=true \
   trainer.args.gradient_checkpointing=true \
+  "${EXTRA_HYDRA_ARGS[@]}" \
   "${EXTRA_ARGS[@]}"
 
 CUDA_VISIBLE_DEVICES="$EVAL_GPU" python src/eval.py experiment=eval/tofu/default.yaml \
@@ -90,7 +97,8 @@ CUDA_VISIBLE_DEVICES="$EVAL_GPU" python src/eval.py experiment=eval/tofu/default
   model.model_args.pretrained_model_name_or_path="$ckpt" \
   model.tokenizer_args.pretrained_model_name_or_path="$ckpt" \
   paths.output_dir="$ckpt/evals" \
-  retain_logs_path="$RETAIN_LOGS"
+  retain_logs_path="$RETAIN_LOGS" \
+  "${EXTRA_HYDRA_ARGS[@]}"
 
 # 四维（OU Table 3 口径）：归一化分母用 init-finetuned，sMIA 参考用 retain90
 INIT_SUMMARY="$SAVES/eval/tofu_${model}_full_local/evals_forget10/TOFU_SUMMARY.json"

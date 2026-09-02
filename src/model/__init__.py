@@ -5,8 +5,17 @@ import os
 import torch
 import logging
 from model.probe import ProbedLlamaForCausalLM
+from hf_local import resolve_hf_snapshot
 
 hf_home = os.getenv("HF_HOME", default=None)
+# from_pretrained(cache_dir=...) 把该目录当 hub 根。本机权重在 $HF_HOME/hub，
+# 若仍传 HF_HOME 会 miss 缓存并在离线/镜像超时时装不上。
+_hf_cache = (
+    os.getenv("HF_HUB_CACHE")
+    or os.getenv("HUGGINGFACE_HUB_CACHE")
+    or os.getenv("TRANSFORMERS_CACHE")
+    or hf_home
+)
 
 logger = logging.getLogger(__name__)
 
@@ -49,12 +58,18 @@ def get_model(model_cfg: DictConfig):
     model_cls = MODEL_REGISTRY[model_handler]
     with open_dict(model_args):
         model_path = model_args.pop("pretrained_model_name_or_path", None)
+    model_path = resolve_hf_snapshot(model_path, kind="models")
+    if tokenizer_args is not None and tokenizer_args.get("pretrained_model_name_or_path"):
+        with open_dict(tokenizer_args):
+            tokenizer_args.pretrained_model_name_or_path = resolve_hf_snapshot(
+                tokenizer_args.pretrained_model_name_or_path, kind="models"
+            )
     try:
         model = model_cls.from_pretrained(
             pretrained_model_name_or_path=model_path,
             torch_dtype=torch_dtype,
             **model_args,
-            cache_dir=hf_home,
+            cache_dir=_hf_cache,
         )
     except Exception as e:
         logger.warning(f"Model {model_path} requested with {model_cfg.model_args}")
@@ -80,7 +95,7 @@ def _add_or_replace_eos_token(tokenizer, eos_token: str) -> None:
 
 def get_tokenizer(tokenizer_cfg: DictConfig):
     try:
-        tokenizer = AutoTokenizer.from_pretrained(**tokenizer_cfg, cache_dir=hf_home)
+        tokenizer = AutoTokenizer.from_pretrained(**tokenizer_cfg, cache_dir=_hf_cache)
     except Exception as e:
         error_message = (
             f"{'--' * 40}\n"

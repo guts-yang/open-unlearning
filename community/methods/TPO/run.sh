@@ -12,6 +12,7 @@
 # 可覆盖的环境变量：
 #   GPU_IDS=0  SAVES=/root/autodl-tmp/saves  CLASSIFIER=gpt（官方默认；另一档 bert）
 #   LR=1e-5  EPOCHS=10  PER_DEVICE_BS=16  GRAD_ACCUM=2   # 有效 batch = 16x2 = 32
+#   EXTRA_HYDRA="model.model_args.attn_implementation=sdpa"  # V100 无 FA2
 #
 # 前置：
 #   1. P0-3 本地基线已跑（retain90_local / full_local），否则 Fluency 分母缺失、
@@ -51,6 +52,12 @@ LR="${LR:-1e-5}"
 EPOCHS="${EPOCHS:-10}"
 PER_DEVICE_BS="${PER_DEVICE_BS:-16}"
 GRAD_ACCUM="${GRAD_ACCUM:-2}"
+
+EXTRA_HYDRA_ARGS=()
+if [[ -n "${EXTRA_HYDRA:-}" ]]; then
+  # shellcheck disable=SC2206
+  read -r -a EXTRA_HYDRA_ARGS <<< "${EXTRA_HYDRA}"
+fi
 
 TASK_NAME="tofu_1B_TPO_${FORGET_SPLIT}${RUN_TAG:+_${RUN_TAG}}"
 CKPT="$SAVES/unlearn/$TASK_NAME"
@@ -110,6 +117,7 @@ CUDA_VISIBLE_DEVICES="$GPU_IDS" python src/train.py --config-name=unlearn.yaml \
   data.forget.TOFU_QA_forget.args.hf_args.path=json \
   "+data.forget.TOFU_QA_forget.args.hf_args.data_files=$DATA_FILE" \
   data.forget.TOFU_QA_forget.args.hf_args.split=train \
+  "${EXTRA_HYDRA_ARGS[@]}" \
   2>&1 | tee -a "$LOG_DIR/${TASK_NAME}.log"
 
 # --- 评测 --------------------------------------------------------------------
@@ -122,6 +130,7 @@ CUDA_VISIBLE_DEVICES="$GPU_IDS" python src/eval.py \
   model.tokenizer_args.pretrained_model_name_or_path="$CKPT" \
   paths.output_dir="$CKPT/evals" \
   retain_logs_path="$RETAIN_LOGS" \
+  "${EXTRA_HYDRA_ARGS[@]}" \
   2>&1 | tee -a "$LOG_DIR/${TASK_NAME}_eval.log"
 
 # --- 四维聚合 + 落盘 ----------------------------------------------------------

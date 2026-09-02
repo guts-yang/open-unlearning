@@ -18,6 +18,7 @@
 #   ckpt 对拍。所以每组训完由本脚本调 ou_append_run.py 收口。
 #
 # 可覆盖：GPU_IDS(=0,1) NUM_PROCESSES(=2) SAVES(=/root/autodl-tmp/saves)
+#   EXTRA_HYDRA="model.model_args.attn_implementation=sdpa"  # V100 无 FA2，向下传到 tofu_unlearn_one / TPO
 set -euo pipefail
 
 ROOT=/usr/local/open-unlearning

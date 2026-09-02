@@ -8,6 +8,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 from evals.metrics.utils import aggregate_to_1D
 from evals.metrics.base import unlearning_metric
+from hf_local import resolve_hf_snapshot
 
 
 @unlearning_metric(name="hm_aggregate")
@@ -26,10 +27,20 @@ def classifier_prob(model, **kwargs):
     classifier_tokenization_args = kwargs["classifier_tokenization_args"]
     device = kwargs.get("device", "cuda")
 
-    tokenizer = AutoTokenizer.from_pretrained(**classifier_tokenization_args)
-    classifier = AutoModelForSequenceClassification.from_pretrained(
-        **classifier_model_args
-    ).to(device)
+    tok_args = dict(classifier_tokenization_args)
+    clf_args = dict(classifier_model_args)
+    if tok_args.get("pretrained_model_name_or_path"):
+        tok_args["pretrained_model_name_or_path"] = resolve_hf_snapshot(
+            tok_args["pretrained_model_name_or_path"], kind="models"
+        )
+    if clf_args.get("pretrained_model_name_or_path"):
+        clf_args["pretrained_model_name_or_path"] = resolve_hf_snapshot(
+            clf_args["pretrained_model_name_or_path"], kind="models"
+        )
+    tokenizer = AutoTokenizer.from_pretrained(**tok_args)
+    classifier = AutoModelForSequenceClassification.from_pretrained(**clf_args).to(
+        device
+    )
 
     data = kwargs["pre_compute"]["text"]["value_by_index"]
     data_list = [

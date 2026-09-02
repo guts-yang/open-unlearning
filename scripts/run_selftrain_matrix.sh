@@ -153,5 +153,33 @@ if [[ "$MODE" == "full" ]]; then
     trainer.method_args.steering_coeff=100
 fi
 
+# 补评：训完了但 eval 被 trainer.* hydra 绊倒的组（S1/R1 本轮）
+echo "=== 补评缺失的 ckpt ==="
+backfill_eval () {  # $1=tag $2=trainer $3=hyper
+  local tag="$1" trainer="$2" hyper="$3"
+  local task_name="tofu_1B_${trainer}_forget10_${tag}"
+  local ckpt="$SAVES/unlearn/${task_name}"
+  if [[ -f "$ckpt/evals/TOFU_SUMMARY.json" ]]; then
+    echo "[skip] $tag 已有评测"
+    collect "$task_name" "$trainer" "$hyper" "$ckpt"
+    return 0
+  fi
+  if [[ ! -f "$ckpt/config.json" ]]; then
+    echo "[skip] $tag 无 ckpt"
+    return 0
+  fi
+  echo "===== [eval $tag] $trainer ====="
+  SKIP_TRAIN=1 bash scripts/tofu_unlearn_one.sh "$trainer" forget10 Llama-3.2-1B-Instruct "$tag" || true
+  collect "$task_name" "$trainer" "$hyper" "$ckpt"
+}
+backfill_eval S1  SimNPO      lr1e-05_b4.5_a1_d0_g0.125_ep10
+backfill_eval R1  RMU         lr1e-05_layer10_scoeff100_epoch10
+backfill_eval G1  GradDiff    lr1e-05_alpha5_epoch10
+backfill_eval N1  NPO         lr1e-05_beta0.1_alpha1_epoch10
+backfill_eval U1  UNDIAL      lr0.0001_beta10_alpha1_epoch10
+backfill_eval GA1 GradAscent  default_lr1e-05_ep10
+
 echo "=== 自训矩阵结束 ==="
 echo "四维汇总表：python scripts/ou_table.py"
+python scripts/ou_table.py || true
+echo "方法表：results/tofu_Llama-3.2-1B-Instruct.md"

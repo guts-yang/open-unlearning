@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -30,6 +31,7 @@ METHOD_ORDER = [
     "IdkDPO",
     "GradDiff",
     "GradAscent",
+    "TPO",
 ]
 
 # docs/repro.md Llama-3.2-1B-Instruct, unreproduced defaults
@@ -70,6 +72,7 @@ FULL_NAMES = {
     "IdkDPO": "IDK-DPO",
     "GradDiff": "Gradient Difference",
     "GradAscent": "Gradient Ascent",
+    "TPO": "Targeted Preference Optimization（Yang et al., AAAI 2026）",
 }
 
 # 与官方未调参设置（docs/repro.md）的对照结论；无条目的方法用通用说明
@@ -151,6 +154,32 @@ def upsert_run(store: dict, run: dict) -> None:
     store["runs"] = runs
 
 
+def _p0_baseline_section() -> list[str]:
+    """把 P0-3 本地基线四维嵌进动态表，避免 record 重写时冲掉。"""
+    saves = Path(os.environ.get("SAVES", "/root/autodl-tmp/saves"))
+    retain = saves / "eval/tofu_Llama-3.2-1B-Instruct_retain90_local/ou_aggregate.json"
+    full = saves / "eval/tofu_Llama-3.2-1B-Instruct_full_local/evals_forget10/ou_aggregate.json"
+    if not retain.exists() or not full.exists():
+        return []
+    r = json.loads(retain.read_text())
+    f = json.loads(full.read_text())
+    den = f.get("denominators") or f.get("params") or {}
+    # ou_aggregate --json 结构：顶层 Mem/Priv/Utility/Agg
+    return [
+        "## P0-3 本地基线（forget10 · 四维口径）",
+        "",
+        "对照官方 `open-unlearning/eval` ±0.02 已 PASS。Fluency 分母来自本机 `full_local`。",
+        "",
+        "| 行 | Mem | Priv | Utility | Agg |",
+        "|----|-----|------|---------|-----|",
+        f"| Init finetuned（full_local） | {fmt(f.get('Mem'))} | {fmt(f.get('Priv'))} | {fmt(f.get('Utility'))} | {fmt(f.get('Agg'))} |",
+        f"| Retain（retain90_local） | {fmt(r.get('Mem'))} | {fmt(r.get('Priv'))} | {fmt(r.get('Utility'))} | {fmt(r.get('Agg'))} |",
+        "",
+        f"Fluency 分母（full gibberish）见 `ou_aggregate.json`。denominators={den or '见 json'}。",
+        "",
+    ]
+
+
 def write_markdown(store: dict, md_path: Path) -> None:
     model = store["model"]
     runs = store["runs"]
@@ -168,6 +197,11 @@ def write_markdown(store: dict, md_path: Path) -> None:
         "",
         f"更新时间：{datetime.now(timezone.utc).astimezone().isoformat(timespec='seconds')}",
         "",
+    ]
+    p03 = _p0_baseline_section()
+    if p03:
+        lines.extend(p03)
+    lines += [
         "## 复现 Leaderboard（每基座取 SOTA）",
         "",
         "SOTA = 当前复现 runs 中 6 项「越高越好」指标（FQ / MU / 1−RL / TR / 1-Prob / 1-ES）的均值最高者。",

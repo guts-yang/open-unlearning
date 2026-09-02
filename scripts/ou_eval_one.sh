@@ -29,6 +29,15 @@ source /root/autodl-tmp/env_hf.sh
 source "$VENV/bin/activate"
 export PATH=/usr/local/cuda/bin:$PATH
 export PYTHONUNBUFFERED=1
+unset HF_HUB_OFFLINE TRANSFORMERS_OFFLINE HF_DATASETS_OFFLINE
+case "${HF_HOME:-}" in
+  /root/autodl-tmp/*) ;;
+  *) echo "[error] HF_HOME 不在数据盘：${HF_HOME:-unset}"; exit 1 ;;
+esac
+case "$SAVES" in
+  /root/autodl-tmp/*) ;;
+  *) echo "[error] SAVES 不在数据盘：$SAVES"; exit 1 ;;
+esac
 
 NAME="$(basename "$REPO")"
 case "$REPO" in
@@ -63,20 +72,16 @@ mkdir -p "$LOG_DIR" "$EVAL_DIR" "$(dirname "$RUNS")"
 cd "$ROOT"
 echo "=== [$(date +%F\ %T)] $NAME (GPU $GPU) ==="
 
-# --- 1) 下载权重（带重试） ----------------------------------------------------
-if [[ -f "$MODEL_DIR/config.json" ]]; then
-  echo "[skip] 权重已存在：$MODEL_DIR"
-else
-  mkdir -p "$MODEL_DIR"
-  for attempt in 1 2 3; do
-    if huggingface-cli download "$REPO" --local-dir "$MODEL_DIR" \
-         --local-dir-use-symlinks False >>"$LOG_DIR/ou_download_$NAME.log" 2>&1; then
-      break
-    fi
-    echo "[warn] 下载失败（第 $attempt 次）：$REPO"
-    sleep 10
-    [[ $attempt -eq 3 ]] && { echo "$NAME download_failed" >>"$FAIL_LOG"; exit 1; }
-  done
+# --- 1) 权重必须已在数据盘齐套（预取脚本会提前拉；这里只补漏） --------------
+if ! bash "$ROOT/scripts/ou_download_ckpt.sh" "$REPO"; then
+  echo "$NAME download_failed" >>"$FAIL_LOG"
+  echo "[error] 权重未齐，拒绝评测：$MODEL_DIR"
+  exit 1
+fi
+if ! python "$ROOT/scripts/ou_ckpt_ready.py" "$MODEL_DIR"; then
+  echo "$NAME download_failed" >>"$FAIL_LOG"
+  echo "[error] 评测前权重仍不完整，拒绝评测"
+  exit 1
 fi
 
 # tokenizer：官方 ckpt 一般自带，缺失时回退 target 模型
@@ -88,12 +93,14 @@ else
 fi
 
 # --- 2) 评测 ------------------------------------------------------------------
+# V100 无 FA2（yaml 默认 flash_attention_2）；不要传 trainer.*（eval 没有该 key）
 CUDA_VISIBLE_DEVICES="$GPU" python src/eval.py experiment=eval/tofu/default.yaml \
   forget_split=forget10 holdout_split=holdout10 \
   model=Llama-3.2-1B-Instruct \
   task_name="$NAME" \
   model.model_args.pretrained_model_name_or_path="$MODEL_DIR" \
   model.tokenizer_args.pretrained_model_name_or_path="$TOK" \
+  model.model_args.attn_implementation=sdpa \
   paths.output_dir="$EVAL_DIR" \
   retain_logs_path="$RETAIN_LOGS" 2>&1 | tee -a "$LOG_DIR/ou_eval_$NAME.log"
 

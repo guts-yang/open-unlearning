@@ -8,6 +8,8 @@ sMIA 参考（retain90 各 MIA AUC），供人工核对。
 口径（论文 §F.1，已用官方 open-unlearning/eval 数据校准，见 docs/zh/ou-table3-p0.md）：
 
     Mem     = HM(1 - norm(ES), 1 - norm(EM), 1 - norm(Para.Prob), 1 - norm(TR))
+              若某分量因 target>init 略负（常见 TR_norm>1），夹到 0 且不参与 HM，
+              并在 result.notes 备注；避免 hmean 报错或因 0 把整维打成 0。
     Priv    = HM(s_MIA(loss), s_MIA(zlib), s_MIA(min_k), s_MIA(min_k++))
     Utility = HM(norm(MU), norm(Forget Fluency))
     Agg     = HM(Mem, Priv, Utility)          # 论文 Table 3（含 Priv 的三维 Agg）
@@ -71,6 +73,29 @@ def hmean(values):
     if any(v == 0 for v in vals):
         return 0.0
     return len(vals) / sum(1.0 / v for v in vals)
+
+
+def hmean_drop_neg(labeled):
+    """HM，但把负分量夹到 0 后剔除（不参与平均）。
+
+    评测噪声下 TR/ES 可能略高于 init，使 1-norm < 0。若把 0 留在 HM 里，
+    整维直接变 0，比真实遗忘水平差一个数量级。剔除后用其余非负分量平均，
+    并返回备注列表。全为负则分数为 0。
+    """
+    notes = []
+    used = []
+    for label, raw in labeled:
+        v = float(raw)
+        if v < 0:
+            notes.append(
+                f"{label} raw={v:.6f}<0 → clamp 0 且不参与 HM（target 略高于 init）"
+            )
+            continue
+        used.append(v)
+    if not used:
+        notes.append("全部 HM 分量被 clamp 剔除，分数记 0")
+        return 0.0, notes
+    return hmean(used), notes
 
 
 def load_json(path, what):
@@ -184,7 +209,14 @@ def aggregate(target, init_sum, retain_sum, target_eval, init_eval, retain_eval,
         )
     tr_n = norm(tr_t, tr_i, "TR")
 
-    mem = hmean([1 - es_n, 1 - em_n, 1 - pp_n, 1 - tr_n])
+    notes = []
+    mem, mem_notes = hmean_drop_neg([
+        ("1-norm(ES)", 1 - es_n),
+        ("1-norm(EM)", 1 - em_n),
+        ("1-norm(ParaProb)", 1 - pp_n),
+        ("1-norm(TR)", 1 - tr_n),
+    ])
+    notes.extend(mem_notes)
 
     # -- Priv -----------------------------------------------------------------
     retain_refs = {}
@@ -213,16 +245,26 @@ def aggregate(target, init_sum, retain_sum, target_eval, init_eval, retain_eval,
         raise ValueError(
             "缺少 forget_Q_A_gibberish（Fluency），请先运行完整评测或提供 --assume-fluency"
         )
-    util = hmean([mu_n, flu_n])
+    util, util_notes = hmean_drop_neg([
+        ("norm(MU)", mu_n),
+        ("norm(Fluency)", flu_n),
+    ])
+    notes.extend(util_notes)
 
     # -- Agg（论文 Table 3 三维：HM(Mem, Priv, Utility)） ------------------------
-    agg = hmean([mem, priv, util])
+    agg, agg_notes = hmean_drop_neg([
+        ("Mem", mem),
+        ("Priv", priv),
+        ("Utility", util),
+    ])
+    notes.extend(agg_notes)
 
     result = {
         "Mem": mem,
         "Priv": priv,
         "Utility": util,
         "Agg": agg,
+        "notes": notes,
         "components": {
             "mem": {
                 "1 - norm(ES)": 1 - es_n,
@@ -239,7 +281,11 @@ def aggregate(target, init_sum, retain_sum, target_eval, init_eval, retain_eval,
         "denominators": denominators,
         "retain_refs": retain_refs,
         "fluency": fluency,
-        "params": {"s_mia_theta": theta, "s_mia_mode": s_mia_mode},
+        "params": {
+            "s_mia_theta": theta,
+            "s_mia_mode": s_mia_mode,
+            "neg_hm_policy": "clamp0_drop",
+        },
     }
     return result, denominators, retain_refs, fluency
 
@@ -316,6 +362,10 @@ def main():
     print("\n------ sMIA 参考（retain90 各 MIA AUC） ------")
     for k, v in retain_refs.items():
         print(f"  {k:<16} = {v:.5f}")
+    if result.get("notes"):
+        print("\n------ 备注（负分量 clamp） ------")
+        for n in result["notes"]:
+            print(f"  * {n}")
     print(f"\n  Fluency: target={fluency}")
     print(f"  sMIA theta = {args.s_mia_theta}")
 

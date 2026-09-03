@@ -107,13 +107,31 @@ python scripts/ou_table.py
 
 | # | 任务 | 状态 |
 |---|------|------|
-| 1 | tpo-ready：修 .gitignore 让 TPO 数据入库（2.8MB×6 json 已 add）、抽 `ou_append_run.py`、改造 TPO `run.sh` 接四维链路 | ✅ 完成（Hydra 干跑通过） |
-| 2 | p0-baseline：`ou_eval_baselines.sh` 评测 retain90 与 full + 官方对照 | ⏳ 阻塞：GPU 未挂载（已实跑验证失败点为 FlashAttention2 需 CUDA，脚本逻辑无误） |
-| 3 | train-p0：SimNPO S1/S2、RMU R1/R2、GradDiff G1/G2 | ⏳ 待 GPU |
-| 4 | train-p1：NPO N1、UNDIAL U1 | ⏳ 待 GPU |
-| 5 | train-p2-tpo：GradAscent GA1、TPO TPO1（beta=0.19） | ⏳ 待 GPU |
-| 6 | aggregate-compare：`ou_table.py` 汇总 + 官方 ckpt 对拍 | ⏳ |
-| 7 | deliver：回填 `results/tofu_*.md`、交付文档（分母清单/commit hash/归因） | ⏳ |
+| 1 | tpo-ready：TPO 数据入库、`ou_append_run.py`、`run.sh` 接四维 + ZeRO-3 | ✅ |
+| 2 | p0-baseline：`ou_eval_baselines.sh` + 官方对照 ±0.02 | ✅ PASS（Init/Retain 本地） |
+| 3–5 | 自训最小 7 组（V100） | ✅ 训完（TPO 评测中）；**不作为 Table 3 对标** |
+| 6 | 阶段 A：官方 ckpt 免训评测（`scripts/ou_p1_table3.sh`） | 🔄 SimNPO 网格进行中 |
+| 7 | `ou_table.py --source official` 出表；命中后再本机重训对拍 | ⏳ |
+
+### 本机相对原文必须不一致（阶段 A 评官方权重不受 optimizer 影响）
+
+| 项 | 原文 / 官方 | 本机 |
+|---|---|---|
+| GPU | 2× L40s 48GB | 2× V100-PCIE 32GB |
+| Attention | `flash_attention_2` | **必须 `sdpa`**（`ou_eval_one.sh` 已写死） |
+| Optimizer | `paged_adamw_32bit` | 自训用 `adamw_torch`（仅重训对拍） |
+| PyTorch | 文档 `2.4.1` | `2.8.0+cu128` |
+| Retain Mem | 论文 0.31 | 实现 0.346（官方 eval 日志也推不出 0.31） |
+| Fluency 分母 | 官方未评 | `full_local` 0.85796 |
+| Mem 负分量 | 论文未写 | `1−TR` 等略负时 **clamp 0 且不参与 HM**（`ou_aggregate.py`，jsonl `notes`） |
+
+阶段 B（本机重训）只在 SimNPO 官方网格命中 `Agg 0.53 / Mem 0.32 / Priv 0.63 / Utility 1.00`（±0.02）之后，用该超参串跑一次 `tofu_unlearn_one.sh`，不盲跑 S1/R1。
+
+P1 结束后本机串行复现（`scripts/ou_repro_p1_winners.sh`，等 GPU 空再开，不抢 P1）：
+1. SimNPO 官方网格最好 `lr5e-05_b3.5_a1_d1_g0.125_ep10`（Agg 0.4716，tag `S_p1best`）
+2. AltPO `lr2e-05_beta0.05_alpha1_epoch10`（官方 Agg 0.5826；缺 `alt5_seed_0.json` 时先 `generate.py`）
+
+补算备注（clamp 行 + 自训 G1/GA1）写在 `results/ou_table3.md` 第二节，不在此重复。
 
 ### 执行前已修的坑
 
@@ -132,7 +150,8 @@ python scripts/ou_table.py
 | `scripts/tofu_unlearn_one.sh` | 单组自训：训练→评测→`ou_aggregate --json`→更新 `results/tofu_*.md`；参数化 GPU_IDS/NUM_PROCESSES/PER_DEVICE_BS/GRAD_ACCUM，支持 run_tag + hydra 覆盖 | ✅ |
 | `scripts/ou_append_run.py` | 四维结果落 jsonl（官方/自训两种 name 解析、重跑覆盖、原子写入） | ✅ 已单测 |
 | `community/methods/TPO/run.sh` | TPO 单组（训练→评测→四维→落 jsonl） | ✅ Hydra 干跑通过 |
-| `scripts/ou_aggregate.py` | 四维聚合（`--json` / `--s-mia-mode{symmetric,piecewise}`） | ✅ 数值零漂移 |
+| `scripts/ou_aggregate.py` | 四维聚合（`--json` / `--s-mia-mode{symmetric,piecewise}`；负分量 clamp+备注） | ✅ |
 | `scripts/ou_table.py` | 汇总表 + 命中判定（±0.02）+ 归因段 | ✅ 合成数据验证 |
 | `scripts/ou_eval_one.sh` / `ou_eval_batch.sh` | 官方 ckpt 下-评-删批量（对拍补充用） | ✅ |
+| `scripts/ou_backfill_aggregate.sh` | 已有 SUMMARY 的目录补算四维并落 jsonl | ✅ |
 | `results/ckpt_list.json` | 138 条官方 ckpt 清单（SimNPO48/RMU54/GradDiff8/NPO8/UNDIAL8/AltPO4/IdkDPO4/IdkNLL4；GradAscent 官方 0 个） | ✅ |

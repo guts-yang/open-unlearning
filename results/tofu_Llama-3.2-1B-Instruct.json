@@ -5,61 +5,242 @@
     {
       "method": "SimNPO",
       "forget_split": "forget10",
-      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_SimNPO_forget10",
-      "updated_at": "2026-08-28T09:49:09+08:00",
+      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_SimNPO_forget10_S_p1best",
+      "updated_at": "2026-09-02T21:25:32+08:00",
       "metrics": {
-        "forget_quality": 2.776495661774257e-16,
-        "model_utility": 0.579962304998642,
-        "forget_truth_ratio": 0.5176791776549416,
-        "forget_Q_A_Prob": 0.58552490234375,
-        "forget_Q_A_ROUGE": 0.47891497087961765,
-        "privleak": -97.78502154679434,
-        "extraction_strength": 0.18123029138789198
+        "forget_quality": 0.02985302150862578,
+        "model_utility": 0.45622658341865224,
+        "forget_truth_ratio": 0.6816555329062899,
+        "forget_Q_A_Prob": 0.12380256652832031,
+        "forget_Q_A_ROUGE": 0.3519111027587851,
+        "privleak": 2.492578900920064,
+        "extraction_strength": 0.05765633307119756
+      },
+      "metrics_extra": {
+        "exact_memorization": 0.5950772879272699,
+        "forget_Q_A_PARA_Prob": 0.06402545928955078,
+        "forget_Q_A_gibberish": 0.8946103350352496,
+        "mia_loss": 0.38045,
+        "mia_min_k": 0.3666375,
+        "mia_min_k_plus_plus": 0.3269625,
+        "mia_zlib": 0.29640625
+      },
+      "ou_table3": {
+        "Mem": 0.3338558059134999,
+        "Priv": 0.5654401549434692,
+        "Utility": 0.8804908411719812,
+        "Agg": 0.5085117221571456,
+        "params": {
+          "s_mia_theta": 9.05,
+          "s_mia_mode": "symmetric",
+          "neg_hm_policy": "clamp0_drop"
+        }
       }
     },
     {
       "method": "RMU",
       "forget_split": "forget10",
-      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_RMU_forget10",
-      "updated_at": "2026-08-28T09:49:09+08:00",
+      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_RMU_forget10_R1",
+      "updated_at": "2026-09-02T14:28:32+08:00",
       "metrics": {
-        "forget_quality": 4.2392996435511593e-17,
-        "model_utility": 0.5852531026841598,
-        "forget_truth_ratio": 0.7717860713256113,
-        "forget_Q_A_Prob": 9.019576129503547e-05,
-        "forget_Q_A_ROUGE": 0.039634399928204556,
-        "privleak": 57.80101637014015,
+        "forget_quality": 2.410483668735883e-29,
+        "model_utility": 0.0,
+        "forget_truth_ratio": 0.8357307512090961,
+        "forget_Q_A_Prob": 9.631039574742317e-07,
+        "forget_Q_A_ROUGE": 0.0,
+        "privleak": 61.546319276805804,
         "extraction_strength": 0.03250892997513522
+      },
+      "metrics_extra": {
+        "exact_memorization": 0.0,
+        "forget_Q_A_PARA_Prob": 1.0030996054410934e-06,
+        "forget_Q_A_gibberish": 0.011107020936324262,
+        "mia_loss": 0.0,
+        "mia_min_k": 0.0017093749999999976,
+        "mia_min_k_plus_plus": 0.006274999999999992,
+        "mia_zlib": 0.08889375
+      },
+      "ou_table3": {
+        "Mem": 0.6003539190738238,
+        "Priv": 0.15209974159535322,
+        "Utility": 0.0,
+        "Agg": 0.0,
+        "params": {
+          "s_mia_theta": 9.05,
+          "s_mia_mode": "symmetric"
+        }
       }
     },
     {
       "method": "UNDIAL",
       "forget_split": "forget10",
-      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_UNDIAL_forget10",
-      "updated_at": "2026-08-28T10:03:01+08:00",
+      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_UNDIAL_forget10_U1",
+      "updated_at": "2026-09-02T13:29:03+08:00",
       "metrics": {
-        "forget_quality": 6.159412995752159e-18,
-        "model_utility": 0.5654747543966091,
-        "forget_truth_ratio": 0.5617081841148897,
-        "forget_Q_A_Prob": 0.256629638671875,
-        "forget_Q_A_ROUGE": 0.33765563553358946,
-        "privleak": -93.7316515002763,
-        "extraction_strength": 0.045104829004488686
+        "forget_quality": 1.7928838057651826e-13,
+        "model_utility": 0.44168184093252916,
+        "forget_truth_ratio": 0.6118448137199802,
+        "forget_Q_A_Prob": 0.13712738037109376,
+        "forget_Q_A_ROUGE": 0.3116333576878835,
+        "privleak": -58.75386224883247,
+        "extraction_strength": 0.03868656248391979
+      },
+      "metrics_extra": {
+        "exact_memorization": 0.31671117892488837,
+        "forget_Q_A_PARA_Prob": 0.09520538330078125,
+        "forget_Q_A_gibberish": 0.8485946660372429,
+        "mia_loss": 0.38680625,
+        "mia_min_k": 0.745115625,
+        "mia_min_k_plus_plus": 0.70169375,
+        "mia_zlib": 0.284684375
+      },
+      "ou_table3": {
+        "Mem": 0.12193656595018695,
+        "Priv": 0.29554079282703427,
+        "Utility": 0.8450644547620665,
+        "Agg": 0.23496323836863622,
+        "params": {
+          "s_mia_theta": 9.05,
+          "s_mia_mode": "symmetric"
+        }
       }
     },
     {
       "method": "AltPO",
       "forget_split": "forget10",
-      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_AltPO_forget10",
-      "updated_at": "2026-08-28T10:51:09+08:00",
+      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_AltPO_forget10_A1",
+      "updated_at": "2026-09-03T01:55:29+08:00",
       "metrics": {
-        "forget_quality": 6.392505006995772e-06,
-        "model_utility": 0.5345461649210134,
-        "forget_truth_ratio": 0.6152917762814165,
-        "forget_Q_A_Prob": 0.5077734375,
-        "forget_Q_A_ROUGE": 0.4071209266351947,
-        "privleak": -93.33532423423938,
-        "extraction_strength": 0.1465160583588852
+        "forget_quality": 6.834081702543897e-09,
+        "model_utility": 0.5912006852300957,
+        "forget_truth_ratio": 0.5957523254420383,
+        "forget_Q_A_Prob": 0.02844173077493906,
+        "forget_Q_A_ROUGE": 0.3344189056810765,
+        "privleak": 47.47227517221948,
+        "extraction_strength": 0.044047914049689184
+      },
+      "metrics_extra": {
+        "exact_memorization": 0.5512895270437003,
+        "forget_Q_A_PARA_Prob": 0.020869008898735046,
+        "forget_Q_A_gibberish": 0.8617391305137425,
+        "mia_loss": 0.08795,
+        "mia_min_k": 0.08868124999999999,
+        "mia_min_k_plus_plus": 0.12669375,
+        "mia_zlib": 0.14605625
+      },
+      "ou_table3": {
+        "Mem": 0.5102985915455319,
+        "Priv": 0.19142700238991098,
+        "Utility": 0.9958125024467658,
+        "Agg": 0.36640033144430956,
+        "params": {
+          "s_mia_theta": 9.05,
+          "s_mia_mode": "symmetric",
+          "neg_hm_policy": "clamp0_drop"
+        }
+      }
+    },
+    {
+      "method": "NPO",
+      "forget_split": "forget10",
+      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_NPO_forget10_N1",
+      "updated_at": "2026-09-02T12:51:32+08:00",
+      "metrics": {
+        "forget_quality": 0.01260422744087484,
+        "model_utility": 0.5206500703710043,
+        "forget_truth_ratio": 0.6410652331937436,
+        "forget_Q_A_Prob": 0.12294872283935547,
+        "forget_Q_A_ROUGE": 0.2478804435877456,
+        "privleak": -1.4397184278594684,
+        "extraction_strength": 0.07419249570925827
+      },
+      "metrics_extra": {
+        "exact_memorization": 0.5985512021556496,
+        "forget_Q_A_PARA_Prob": 0.048798828125,
+        "forget_Q_A_gibberish": 0.940963251281064,
+        "mia_loss": 0.3970218749999999,
+        "mia_min_k": 0.3909375,
+        "mia_min_k_plus_plus": 0.3907875,
+        "mia_zlib": 0.36485312500000006
+      },
+      "ou_table3": {
+        "Mem": 0.31204441018179613,
+        "Priv": 0.6165116101510263,
+        "Utility": 0.9700157213665455,
+        "Agg": 0.5121540430785071,
+        "params": {
+          "s_mia_theta": 9.05,
+          "s_mia_mode": "symmetric"
+        }
+      }
+    },
+    {
+      "method": "GradDiff",
+      "forget_split": "forget10",
+      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_GradDiff_forget10_GD2",
+      "updated_at": "2026-09-03T09:27:09+08:00",
+      "metrics": {
+        "forget_quality": 6.698858234088453e-137,
+        "model_utility": 0.5736676053157734,
+        "forget_truth_ratio": 0.06851146346290099,
+        "forget_Q_A_Prob": 0.018314368160308167,
+        "forget_Q_A_ROUGE": 0.045927993805845425,
+        "privleak": 53.0005512007969,
+        "extraction_strength": 0.037834791846269346
+      },
+      "metrics_extra": {
+        "exact_memorization": 0.10049215018050744,
+        "forget_Q_A_PARA_Prob": 0.0025492922016640894,
+        "forget_Q_A_gibberish": 0.5538490311079659,
+        "mia_loss": 0.056209375000000006,
+        "mia_min_k": 0.05451875,
+        "mia_min_k_plus_plus": 0.04034999999999999,
+        "mia_zlib": 0.047334375
+      },
+      "ou_table3": {
+        "Mem": 0.9381340481828702,
+        "Priv": 0.16227086277752062,
+        "Utility": 0.7713551924933787,
+        "Agg": 0.35191023870203014,
+        "params": {
+          "s_mia_theta": 9.05,
+          "s_mia_mode": "symmetric",
+          "neg_hm_policy": "clamp0_drop"
+        }
+      }
+    },
+    {
+      "method": "TPO",
+      "forget_split": "forget10",
+      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_TPO_forget10_TPO1",
+      "updated_at": "2026-09-02T15:18:04+08:00",
+      "metrics": {
+        "forget_quality": 3.913229651378406e-08,
+        "model_utility": 6.673745742692129e-05,
+        "forget_truth_ratio": 0.4017396686642624,
+        "forget_Q_A_Prob": 1.895873351813092e-05,
+        "forget_Q_A_ROUGE": 0.40797607524428536,
+        "privleak": -6.17354498324853,
+        "extraction_strength": 0.03250892997513522
+      },
+      "metrics_extra": {
+        "exact_memorization": 0.6499553386121988,
+        "forget_Q_A_PARA_Prob": 1.2042037903912602e-06,
+        "forget_Q_A_gibberish": 0.182417171903071,
+        "mia_loss": 0.49899999999999994,
+        "mia_min_k": 0.42019062500000004,
+        "mia_min_k_plus_plus": 0.78688125,
+        "mia_zlib": 0.41479375
+      },
+      "ou_table3": {
+        "Mem": 0.39942160007649297,
+        "Priv": 0.30860210039500613,
+        "Utility": 0.00022280127425623858,
+        "Agg": 0.0006675495068071505,
+        "params": {
+          "s_mia_theta": 9.05,
+          "s_mia_mode": "symmetric"
+        }
       }
     }
   ]

@@ -1,23 +1,22 @@
 #!/bin/bash
-# P1 批量驱动：按 results/ckpt_list.json 串行跑 scripts/ou_eval_one.sh。
+# P1 批量驱动：按 results/ckpt_list.json 跑 scripts/ou_eval_one.sh。
+# 默认 GPU_IDS=0,1：两张卡各评一条，一条结束立刻补下一条。
 #
 # 用法：
 #   bash scripts/ou_eval_batch.sh                        # 跑清单里全部 pending
-#   bash scripts/ou_eval_batch.sh --only SimNPO          # 只跑某个方法
-#   bash scripts/ou_eval_batch.sh --limit 2              # 先试跑 2 条（强烈建议先做）
-#   bash scripts/ou_eval_batch.sh --only RMU --limit 4
-#   bash scripts/ou_eval_batch.sh --force                # 忽略 skip-done，重跑
-#
-# 行为：
-#   - 默认 --skip-done：results/ou_table3_runs.jsonl 里已有该 ckpt 就跳过（断点续跑）
-#   - 单条失败不中断整批，失败名写入 results/ou_table3_failures.log
-#   - 每条打印进度与数据盘剩余空间
+#   GPU=0,1 bash scripts/ou_eval_batch.sh --only SimNPO
+#   bash scripts/ou_eval_batch.sh --gpu 0 --only SimNPO  # 强制单卡
+#   bash scripts/ou_eval_batch.sh --limit 2
+#   bash scripts/ou_eval_batch.sh --force
 set -euo pipefail
 
 ROOT=/usr/local/open-unlearning
 LIST="${LIST:-$ROOT/results/ckpt_list.json}"
 RUNS="${RUNS:-$ROOT/results/ou_table3_runs.jsonl}"
-GPU="${GPU:-0}"
+GPU="${GPU:-0,1}"
+# 评测同时预取后续条数（每条约 2.5GB，4 条约 10GB，只放数据盘）
+PREFETCH="${PREFETCH:-4}"
+SAVES="${SAVES:-/root/autodl-tmp/saves}"
 
 ONLY=""
 LIMIT=""
@@ -75,18 +74,68 @@ if [[ $TOTAL -eq 0 ]]; then
   exit 0
 fi
 
-echo "=== 待跑 $TOTAL 条（GPU $GPU，清单 $LIST）==="
+case "$SAVES" in
+  /root/autodl-tmp/*) ;;
+  *) echo "[error] SAVES 必须在数据盘，当前=$SAVES"; exit 1 ;;
+esac
+
+IFS=',' read -r -a GPUS <<< "$GPU"
+echo "=== 待跑 $TOTAL 条（GPU ${GPUS[*]}，prefetch=$PREFETCH，ckpt=$SAVES/hf_ckpts）==="
+
+# 后台预取 [from, from+PREFETCH)，已齐的立刻返回
+prefetch_from () {
+  local from="$1"
+  local k=0
+  local n
+  while [[ $k -lt $PREFETCH ]]; do
+    n=$((from + k))
+    if [[ $n -ge $TOTAL ]]; then
+      break
+    fi
+    bash "$ROOT/scripts/ou_download_ckpt.sh" "${ENTRIES[$n]}" &
+    k=$((k + 1))
+  done
+}
+
+# 先把第一批拉到数据盘，GPU 再开工
+echo "[prefetch] 启动前预取 ${PREFETCH} 条"
+prefetch_from 0
+wait || true
+
 i=0
-for NAME in "${ENTRIES[@]}"; do
-  i=$((i + 1))
-  echo "----- [$i/$TOTAL] $NAME -----"
-  if bash "$ROOT/scripts/ou_eval_one.sh" "$NAME" "$GPU"; then
-    echo "[ok] $NAME"
-  else
-    echo "[fail] $NAME（已记入 results/ou_table3_failures.log，继续下一条）"
-  fi
+while [[ $i -lt $TOTAL ]]; do
+  # 评这一批的同时，预取再往后 PREFETCH 条
+  prefetch_from $((i + ${#GPUS[@]}))
+  pids=()
+  names=()
+  gused=()
+  for g in "${GPUS[@]}"; do
+    if [[ $i -ge $TOTAL ]]; then
+      break
+    fi
+    NAME="${ENTRIES[$i]}"
+    i=$((i + 1))
+    echo "----- [$i/$TOTAL] $NAME  GPU=$g -----"
+    bash "$ROOT/scripts/ou_eval_one.sh" "$NAME" "$g" &
+    pids+=("$!")
+    names+=("$NAME")
+    gused+=("$g")
+  done
+  j=0
+  while [[ $j -lt ${#pids[@]} ]]; do
+    rc=0
+    wait "${pids[$j]}" || rc=$?
+    if [[ $rc -eq 0 ]]; then
+      echo "[ok] ${names[$j]} (GPU ${gused[$j]})"
+    else
+      echo "[fail] ${names[$j]}（已记入 results/ou_table3_failures.log，继续）"
+    fi
+    j=$((j + 1))
+  done
 done
+# 收掉可能还在跑的预取
+wait || true
 
 echo "=== 批量结束：$TOTAL 条。失败清单（若有）==="
 [[ -f "$ROOT/results/ou_table3_failures.log" ]] && tail -20 "$ROOT/results/ou_table3_failures.log" || true
-echo "四维汇总表：python scripts/ou_table.py"
+echo "四维汇总表：python scripts/ou_table.py --source official"

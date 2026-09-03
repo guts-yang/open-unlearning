@@ -28,6 +28,7 @@
 """
 
 import argparse
+import fcntl
 import json
 import os
 import sys
@@ -81,35 +82,37 @@ def append_run(name, agg_json, runs_path, repo_id="", method=None, hyper=None,
         rec[d] = agg[d]
     rec["components"] = agg.get("components")
     rec["params"] = agg.get("params")
+    rec["notes"] = agg.get("notes") or []
 
-    # 同一 name 只保留一行（重跑覆盖），其余原样保留
-    kept = []
-    if os.path.exists(runs_path):
-        with open(runs_path) as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    if json.loads(line)["name"] == name:
-                        continue  # 覆盖旧行
-                except (json.JSONDecodeError, KeyError):
-                    pass  # 坏行保留，避免静默丢数据
-                kept.append(line)
-    kept.append(json.dumps(rec, ensure_ascii=False))
-
-    # 原子写入：先写同目录临时文件再 rename，避免中断留下半截 jsonl
+    # 同一 name 只保留一行（重跑覆盖）。双卡并行写必须加锁，否则 rename 会丢行。
     os.makedirs(os.path.dirname(runs_path) or ".", exist_ok=True)
     d = os.path.dirname(runs_path) or "."
-    fd, tmp = tempfile.mkstemp(dir=d, prefix=".ou_runs_", suffix=".tmp")
-    try:
-        with os.fdopen(fd, "w") as f:
-            f.write("\n".join(kept) + "\n")
-        os.replace(tmp, runs_path)
-    except Exception:
-        if os.path.exists(tmp):
-            os.unlink(tmp)
-        raise
+    lock_path = runs_path + ".lock"
+    with open(lock_path, "a") as lf:
+        fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
+        kept = []
+        if os.path.exists(runs_path):
+            with open(runs_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        if json.loads(line)["name"] == name:
+                            continue
+                    except (json.JSONDecodeError, KeyError):
+                        pass
+                    kept.append(line)
+        kept.append(json.dumps(rec, ensure_ascii=False))
+        fd, tmp = tempfile.mkstemp(dir=d, prefix=".ou_runs_", suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w") as f:
+                f.write("\n".join(kept) + "\n")
+            os.replace(tmp, runs_path)
+        except Exception:
+            if os.path.exists(tmp):
+                os.unlink(tmp)
+            raise
     return rec
 
 

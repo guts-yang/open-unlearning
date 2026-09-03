@@ -210,6 +210,15 @@ def collate_fn(batch):
 
 @hydra.main(version_base=None, config_path=".", config_name="generate")
 def main(config):
+    import fcntl
+    out = os.path.abspath(str(config.output_file))
+    os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
+    lock_path = out + ".lock"
+    lock_f = open(lock_path, "a")
+    fcntl.flock(lock_f.fileno(), fcntl.LOCK_EX)
+    if os.path.isfile(out) and os.path.getsize(out) > 0:
+        print(f"[skip] AltPO alternate 数据已存在：{out}")
+        return
     set_seed(config.get('seed', 0))
     # Loading the model and the tokenizer
     model, tokenizer = get_model(config['model_config'])
@@ -276,11 +285,9 @@ def main(config):
             batch.update({'input':inputs, "sub_answer":res})
             res_sc += [{k: v[i] for k, v in batch.items()} for i in range(len(list(batch.values())[0]))]
         results += res_sc
-    outdir = os.path.dirname(config.output_file)
-    # Write the list to a JSON file
+    outdir = os.path.dirname(out)
     os.makedirs(outdir, exist_ok=True)
-    # r_dump = []
-    with open(config.output_file, 'w') as f:
+    with open(out, 'w') as f:
         for result in results:
             r = {
                 "question": result["question"],

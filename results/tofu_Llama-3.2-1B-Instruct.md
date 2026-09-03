@@ -2,7 +2,7 @@
 
 本机复现结果（动态表）。同一方法同一 forget split 会被覆盖更新。
 
-更新时间：2026-09-03T09:27:09+08:00
+更新时间：2026-09-03T10:26:52+08:00
 
 ## P0-3 本地基线（forget10 · 四维口径）
 
@@ -21,7 +21,7 @@ SOTA = 当前复现 runs 中 6 项「越高越好」指标（FQ / MU / 1−RL / 
 
 | 基座名称 | SOTA 方法 | FQ↑ | MU↑ | 1−RL↑ | TR↑ | 1-Prob↑ | 1-ES↑ | 全称 | 设置一致性 |
 |----------|-----------|-----|-----|-------|-----|---------|-------|------|------------|
-| Llama-3.2-1B-Instruct | **RMU** | 2.41e-29 | 0 | 1.0000 | 0.8357 | 1.0000 | 0.9675 | Representation Misdirection for Unlearning（Li et al., 2024） | 本机复现（forget10），硬件/torch 与官方 2×L40s 不同、只比量级；与官方未调参设置一致（FQ/MU/TR 量级吻合） |
+| Llama-3.2-1B-Instruct | **RMU** | 3.13e-13 | 0.5514 | 0.9384 | 0.7130 | 0.9967 | 0.9675 | Representation Misdirection for Unlearning（Li et al., 2024） | 本机复现（forget10），硬件/torch 与官方 2×L40s 不同、只比量级；与官方未调参设置一致（FQ/MU/TR 量级吻合） |
 
 FQ = forget_quality，MU = model_utility，TR = forget_truth_ratio，ES = extraction_strength，RL = forget ROUGE-L。1−RL / 1-Prob / 1-ES 已翻转为「越高越好」。privleak 等原始值见 `results/*.json`。
 
@@ -30,8 +30,8 @@ FQ = forget_quality，MU = model_utility，TR = forget_truth_ratio，ES = extrac
 | 基座名称 | 方法 | FQ↑ | MU↑ | 1−RL↑ | TR↑ | 1-Prob↑ | 1-ES↑ |
 |----------|------|-----|-----|-------|-----|---------|-------|
 | Llama-3.2-1B-Instruct | SimNPO | 0.0299 | 0.4562 | 0.6481 | 0.6817 | 0.8762 | 0.9423 |
-| Llama-3.2-1B-Instruct | **RMU** | 2.41e-29 | 0 | 1.0000 | 0.8357 | 1.0000 | 0.9675 |
-| Llama-3.2-1B-Instruct | UNDIAL | 1.79e-13 | 0.4417 | 0.6884 | 0.6118 | 0.8629 | 0.9613 |
+| Llama-3.2-1B-Instruct | **RMU** | 3.13e-13 | 0.5514 | 0.9384 | 0.7130 | 0.9967 | 0.9675 |
+| Llama-3.2-1B-Instruct | UNDIAL | 1.46e-06 | 0.0272 | 0.7208 | 0.6481 | 0.9289 | 0.9533 |
 | Llama-3.2-1B-Instruct | AltPO | 6.83e-09 | 0.5912 | 0.6656 | 0.5958 | 0.9716 | 0.9560 |
 | Llama-3.2-1B-Instruct | NPO | 0.0126 | 0.5207 | 0.7521 | 0.6411 | 0.8771 | 0.9258 |
 | Llama-3.2-1B-Instruct | GradDiff | 6.70e-137 | 0.5737 | 0.9541 | 0.0685 | 0.9817 | 0.9622 |
@@ -47,9 +47,9 @@ Mem=HM(1−ES,1−EM,1−ParaProb,1−TR)；Priv=HM(s_LOSS,s_ZLib,s_MinK,s_MinK+
 | Llama-3.2-1B-Instruct | SimNPO | forget10 | 0.3339 | 0.5654 | 0.8805 | 0.5085 | /root/autodl-tmp/saves/unlearn/tofu_1B_SimNPO_forget10_S_p1best |
 | Llama-3.2-1B-Instruct | AltPO | forget10 | 0.5103 | 0.1914 | 0.9958 | 0.3664 | /root/autodl-tmp/saves/unlearn/tofu_1B_AltPO_forget10_A1 |
 | Llama-3.2-1B-Instruct | GradDiff | forget10 | 0.9381 | 0.1623 | 0.7714 | 0.3519 | /root/autodl-tmp/saves/unlearn/tofu_1B_GradDiff_forget10_GD2 |
-| Llama-3.2-1B-Instruct | UNDIAL | forget10 | 0.1219 | 0.2955 | 0.8451 | 0.2350 | /root/autodl-tmp/saves/unlearn/tofu_1B_UNDIAL_forget10_U1 |
+| Llama-3.2-1B-Instruct | RMU | forget10 | 0.6043 | 0.1874 | 0.1655 | 0.2302 | /root/autodl-tmp/saves/unlearn/tofu_1B_RMU_forget10_R_best |
+| Llama-3.2-1B-Instruct | UNDIAL | forget10 | 0.3130 | 0.3183 | 0.0866 | 0.1678 | /root/autodl-tmp/saves/unlearn/tofu_1B_UNDIAL_forget10_U_best |
 | Llama-3.2-1B-Instruct | TPO | forget10 | 0.3994 | 0.3086 | 2.23e-04 | 6.68e-04 | /root/autodl-tmp/saves/unlearn/tofu_1B_TPO_forget10_TPO1 |
-| Llama-3.2-1B-Instruct | RMU | forget10 | 0.6004 | 0.1521 | 0 | 0 | /root/autodl-tmp/saves/unlearn/tofu_1B_RMU_forget10_R1 |
 
 ## 官方未调参对照（仅 FQ / MU / TR）
 
@@ -58,8 +58,8 @@ Mem=HM(1−ES,1−EM,1−ParaProb,1−TR)；Priv=HM(s_LOSS,s_ZLib,s_MinK,s_MinK+
 | 方法 | split | 官方 FQ | 官方 MU | 官方 TR | 本机 FQ | 本机 MU | 本机 TR |
 |------|-------|---------|---------|---------|---------|---------|---------|
 | SimNPO | forget10 | 2.47e-203 | 0.5400 | 1.07e-05 | 0.0299 | 0.4562 | 0.6817 |
-| RMU | forget10 | 3.15e-15 | 0.5900 | 0.7600 | 2.41e-29 | 0 | 0.8357 |
-| UNDIAL | forget10 | — | — | — | 1.79e-13 | 0.4417 | 0.6118 |
+| RMU | forget10 | 3.15e-15 | 0.5900 | 0.7600 | 3.13e-13 | 0.5514 | 0.7130 |
+| UNDIAL | forget10 | — | — | — | 1.46e-06 | 0.0272 | 0.6481 |
 | AltPO | forget10 | — | — | — | 6.83e-09 | 0.5912 | 0.5958 |
 | NPO | forget10 | 0.0200 | 0.4600 | 0.7000 | 0.0126 | 0.5207 | 0.6411 |
 | GradDiff | forget10 | 1.06e-239 | 0.4900 | 3.53e-27 | 6.70e-137 | 0.5737 | 0.0685 |

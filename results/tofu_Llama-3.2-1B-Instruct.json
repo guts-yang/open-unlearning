@@ -40,68 +40,70 @@
     {
       "method": "RMU",
       "forget_split": "forget10",
-      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_RMU_forget10_R1",
-      "updated_at": "2026-09-02T14:28:32+08:00",
+      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_RMU_forget10_R_best",
+      "updated_at": "2026-09-03T10:00:30+08:00",
       "metrics": {
-        "forget_quality": 2.410483668735883e-29,
-        "model_utility": 0.0,
-        "forget_truth_ratio": 0.8357307512090961,
-        "forget_Q_A_Prob": 9.631039574742317e-07,
-        "forget_Q_A_ROUGE": 0.0,
-        "privleak": 61.546319276805804,
+        "forget_quality": 3.1252666340221845e-13,
+        "model_utility": 0.5514108215012782,
+        "forget_truth_ratio": 0.7129661070667143,
+        "forget_Q_A_Prob": 0.0033496179105713965,
+        "forget_Q_A_ROUGE": 0.06162552114987717,
+        "privleak": 56.6385330659255,
         "extraction_strength": 0.03250892997513522
       },
       "metrics_extra": {
-        "exact_memorization": 0.0,
-        "forget_Q_A_PARA_Prob": 1.0030996054410934e-06,
-        "forget_Q_A_gibberish": 0.011107020936324262,
-        "mia_loss": 0.0,
-        "mia_min_k": 0.0017093749999999976,
-        "mia_min_k_plus_plus": 0.006274999999999992,
-        "mia_zlib": 0.08889375
+        "exact_memorization": 0.03817246499238536,
+        "forget_Q_A_PARA_Prob": 0.00029048061231151223,
+        "forget_Q_A_gibberish": 0.07800654053462494,
+        "mia_loss": 0.030668749999999974,
+        "mia_min_k": 0.0320375,
+        "mia_min_k_plus_plus": 0.28798124999999997,
+        "mia_zlib": 0.026396874999999972
       },
       "ou_table3": {
-        "Mem": 0.6003539190738238,
-        "Priv": 0.15209974159535322,
-        "Utility": 0.0,
-        "Agg": 0.0,
+        "Mem": 0.6042888764137263,
+        "Priv": 0.18735211294324058,
+        "Utility": 0.1655012647129319,
+        "Agg": 0.23015611622352014,
         "params": {
           "s_mia_theta": 9.05,
-          "s_mia_mode": "symmetric"
+          "s_mia_mode": "symmetric",
+          "neg_hm_policy": "clamp0_drop"
         }
       }
     },
     {
       "method": "UNDIAL",
       "forget_split": "forget10",
-      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_UNDIAL_forget10_U1",
-      "updated_at": "2026-09-02T13:29:03+08:00",
+      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_UNDIAL_forget10_U_best",
+      "updated_at": "2026-09-03T10:26:52+08:00",
       "metrics": {
-        "forget_quality": 1.7928838057651826e-13,
-        "model_utility": 0.44168184093252916,
-        "forget_truth_ratio": 0.6118448137199802,
-        "forget_Q_A_Prob": 0.13712738037109376,
-        "forget_Q_A_ROUGE": 0.3116333576878835,
-        "privleak": -58.75386224883247,
-        "extraction_strength": 0.03868656248391979
+        "forget_quality": 1.4629553806612078e-06,
+        "model_utility": 0.02724872180790336,
+        "forget_truth_ratio": 0.648129067787299,
+        "forget_Q_A_Prob": 0.0710711669921875,
+        "forget_Q_A_ROUGE": 0.2791677623528422,
+        "privleak": -37.00941100909596,
+        "extraction_strength": 0.04672652140118534
       },
       "metrics_extra": {
-        "exact_memorization": 0.31671117892488837,
-        "forget_Q_A_PARA_Prob": 0.09520538330078125,
-        "forget_Q_A_gibberish": 0.8485946660372429,
-        "mia_loss": 0.38680625,
-        "mia_min_k": 0.745115625,
-        "mia_min_k_plus_plus": 0.70169375,
-        "mia_zlib": 0.284684375
+        "exact_memorization": 0.32310788447503,
+        "forget_Q_A_PARA_Prob": 0.04150627136230469,
+        "forget_Q_A_gibberish": 0.7686055966303684,
+        "mia_loss": 0.260840625,
+        "mia_min_k": 0.61074375,
+        "mia_min_k_plus_plus": 0.5866625,
+        "mia_zlib": 0.19850625
       },
       "ou_table3": {
-        "Mem": 0.12193656595018695,
-        "Priv": 0.29554079282703427,
-        "Utility": 0.8450644547620665,
-        "Agg": 0.23496323836863622,
+        "Mem": 0.31300702722502083,
+        "Priv": 0.3182895687189161,
+        "Utility": 0.08661676994499756,
+        "Agg": 0.1677691142097862,
         "params": {
           "s_mia_theta": 9.05,
-          "s_mia_mode": "symmetric"
+          "s_mia_mode": "symmetric",
+          "neg_hm_policy": "clamp0_drop"
         }
       }
     },

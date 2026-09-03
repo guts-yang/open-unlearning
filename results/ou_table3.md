@@ -1,23 +1,36 @@
 # OU Table 3 复现汇总（TOFU forget10 · Llama-3.2-1B-Instruct）
 
-- 生成时间：2026-09-03T09:27:10+08:00
-- 评估器 HEAD：`9c64f461c5b004e02310539b8f3fd8184f010d87`
-- 数据来源：`results/ou_table3_runs.jsonl`（122 条，source=all）
+- 生成时间：2026-09-03T10:33:13+08:00
+- 评估器 HEAD：`1466baac849f90d3ade525e18af3136ecc22637c`
+- 数据来源：`results/ou_table3_runs.jsonl`（124 条，source=all）
 - 口径：Mem=HM(1−ES,1−EM,1−ParaProb,1−TR)；Priv=HM(s_LOSS,s_ZLib,s_MinK,s_MinK++)；Utility=HM(MU,Fluency)；Agg=HM(Mem,Priv,Utility)；全部按 init-finetuned 归一化。负分量（常见 1−TR）clamp 到 0 且不参与 HM，带 ※
 - 命中判定：四维全部落在论文靶值 ±0.02 内
 
 ## 〇、官方 ckpt 每方法最佳（按 Agg，写入本表）
 
-| 方法 | 超参串 | Mem | Priv | Utility | Agg | 命中 |
+| 方法 | 超参串 | Agg↑ | Mem↑ | Priv↑ | Utility↑ | 命中 |
 |---|---|---|---|---|---|---|
-| SimNPO | `lr5e-05_b3.5_a1_d1_g0.125_ep10` | 0.3020 | 0.4880 | 0.9992 | 0.4716 | ❌ |
-| RMU | `lr5e-05_layer5_scoeff1_epoch5` | 0.3874 | 0.4856 | 0.7271 | 0.4987 | ❌ |
-| UNDIAL | `lr0.0003_beta30_alpha2_epoch5` | 0.2283 | 0.2877 | 0.3256 | 0.2746 | — |
-| AltPO | `lr2e-05_beta0.05_alpha1_epoch10` | 0.4284 | 0.5724 | 0.9364 | 0.5826 | — |
+| SimNPO | `lr5e-05_b3.5_a1_d1_g0.125_ep10` | 0.4716 | 0.3020 | 0.4880 | 0.9992 | ❌ |
+| RMU | `lr5e-05_layer5_scoeff1_epoch5` | 0.4987 | 0.3874 | 0.4856 | 0.7271 | ❌ |
+| UNDIAL | `lr0.0003_beta30_alpha2_epoch5` | 0.2746 | 0.2283 | 0.2877 | 0.3256 | — |
+| AltPO | `lr2e-05_beta0.05_alpha1_epoch10` | 0.5826 | 0.4284 | 0.5724 | 0.9364 | — |
 | NPO | — | — | — | — | — | 尚未评 |
 | GradDiff | — | — | — | — | — | 尚未评 |
 | IdkDPO | — | — | — | — | — | 尚未评 |
 | IdkNLL | — | — | — | — | — | 尚未评 |
+
+## 〇（本机）、自训每方法最佳（按 Agg，每方法只留最高一组）
+
+| 方法 | 超参串 | 运行名 | Agg↑ | Mem↑ | Priv↑ | Utility↑ | 命中 |
+|---|---|---|---|---|---|---|---|
+| NPO | `lr1e-05_beta0.1_alpha1_epoch10` | `tofu_1B_NPO_forget10_N1` | 0.5122 | 0.3120 | 0.6165 | 0.9700 | — |
+| SimNPO | `lr5e-05_b3.5_a1_d1_g0.125_ep10` | `tofu_1B_SimNPO_forget10_S_p1best` | 0.5085 | 0.3339 | 0.5654 | 0.8805 | ❌ |
+| AltPO | `lr2e-05_beta0.05_alpha1_epoch10` | `tofu_1B_AltPO_forget10_A1` | 0.3664 | 0.5103 | 0.1914 | 0.9958 | — |
+| GradDiff | `lr1e-05_alpha10_epoch10` ※ | `tofu_1B_GradDiff_forget10_GD2` | 0.3519 | 0.9381 | 0.1623 | 0.7714 | — |
+| UNDIAL | `lr0.0001_beta10_alpha1_epoch10` | `tofu_1B_UNDIAL_forget10_U1` | 0.2350 | 0.1219 | 0.2955 | 0.8451 | — |
+| RMU | `lr5e-05_layer5_scoeff1_epoch5` | `tofu_1B_RMU_forget10_R_best` | 0.2302 | 0.6043 | 0.1874 | 0.1655 | ❌ |
+| TPO | `lr1e-5_beta0.19_alpha0_gpt_ep10` | `tofu_1B_TPO_forget10_TPO1` | 0.0007 | 0.3994 | 0.3086 | 0.0002 | — |
+| GradAscent | `default_lr1e-05_ep10` ※ | `tofu_1B_GradAscent_forget10_GA1` | 0.0000 | 0.9724 | 0.4809 | 0.0000 | — |
 
 ## 一、各方法 Top-K（按 Agg 降序）
 
@@ -56,7 +69,7 @@
 
 （论文未给该方法靶值，不做命中判定）
 
-### RMU（55 个 ckpt，靶值 Agg=0.52 / Mem=0.47 / Priv=0.50 / Utility=0.61）
+### RMU（56 个 ckpt，靶值 Agg=0.52 / Mem=0.47 / Priv=0.50 / Utility=0.61）
 
 | 来源 | 超参串 | Mem | Priv | Utility | Agg | HM(Mem,Utility) | 命中 | 与靶值偏差 |
 |---|---|---|---|---|---|---|---|---|
@@ -65,13 +78,13 @@
 | official | `lr2e-05_layer5_scoeff10_epoch5` | 0.3827 | 0.4074 | 0.5107 | 0.4270 | 0.4375 | ❌ | Agg-0.09 Mem-0.09 Priv-0.09 Utility-0.10 |
 | official | `lr5e-05_layer5_scoeff1_epoch10` | 0.4792 | 0.2947 | 0.6042 | 0.4205 | 0.5345 | ❌ | Agg-0.10 Mem+0.01 Priv-0.21 Utility-0.01 |
 | official | `lr2e-05_layer10_scoeff10_epoch10` | 0.2933 | 0.1683 | 0.4164 | 0.2553 | 0.3442 | ❌ | Agg-0.26 Mem-0.18 Priv-0.33 Utility-0.19 |
+| selftrain | `lr5e-05_layer5_scoeff1_epoch5` | 0.6043 | 0.1874 | 0.1655 | 0.2302 | 0.2598 | ❌ | Agg-0.29 Mem+0.13 Priv-0.31 Utility-0.44 |
 | official | `lr5e-05_layer10_scoeff1_epoch10` | 0.2288 | 0.1352 | 0.7380 | 0.2286 | 0.3493 | ❌ | Agg-0.29 Mem-0.24 Priv-0.36 Utility+0.13 |
 | official | `lr2e-05_layer10_scoeff100_epoch5` | 0.2298 | 0.1554 | 0.3196 | 0.2156 | 0.2674 | ❌ | Agg-0.30 Mem-0.24 Priv-0.34 Utility-0.29 |
 | official | `lr5e-05_layer10_scoeff1_epoch5` | 0.1989 | 0.1207 | 0.7787 | 0.2055 | 0.3169 | ❌ | Agg-0.31 Mem-0.27 Priv-0.38 Utility+0.17 |
 | official | `lr2e-05_layer10_scoeff10_epoch5` | 0.1954 | 0.1260 | 0.6410 | 0.2053 | 0.2995 | ❌ | Agg-0.31 Mem-0.27 Priv-0.37 Utility+0.03 |
-| official | `lr2e-05_layer5_scoeff100_epoch5` | 0.3663 | 0.4031 | 0.1016 | 0.1993 | 0.1590 | ❌ | Agg-0.32 Mem-0.10 Priv-0.10 Utility-0.51 |
 
-命中靶值的 ckpt 数：**0 / 55**
+命中靶值的 ckpt 数：**0 / 56**
 
 ### SimNPO（50 个 ckpt，靶值 Agg=0.53 / Mem=0.32 / Priv=0.63 / Utility=1.00）
 
@@ -98,7 +111,7 @@
 
 （论文未给该方法靶值，不做命中判定）
 
-### UNDIAL（9 个 ckpt）
+### UNDIAL（10 个 ckpt）
 
 | 来源 | 超参串 | Mem | Priv | Utility | Agg | HM(Mem,Utility) | 命中 | 与靶值偏差 |
 |---|---|---|---|---|---|---|---|---|
@@ -106,6 +119,7 @@
 | selftrain | `lr0.0001_beta10_alpha1_epoch10` | 0.1219 | 0.2955 | 0.8451 | 0.2350 | 0.2131 | — | |
 | official | `lr0.0001_beta10_alpha5_epoch5` ※ | 0.2078 | 0.1433 | 0.8964 | 0.2325 | 0.3374 | — | |
 | official | `lr0.0003_beta10_alpha2_epoch10` | 0.1595 | 0.2036 | 0.4488 | 0.2238 | 0.2354 | — | |
+| selftrain | `lr0.0003_beta30_alpha2_epoch5` | 0.3130 | 0.3183 | 0.0866 | 0.1678 | 0.1357 | — | |
 | official | `lr0.0001_beta3_alpha1_epoch10` ※ | 0.0693 | 0.1038 | 0.9355 | 0.1194 | 0.1291 | — | |
 | official | `lr1e-05_beta30_alpha2_epoch10` ※ | 0.0235 | 0.1010 | 1.0051 | 0.0562 | 0.0460 | — | |
 | official | `lr1e-05_beta10_alpha1_epoch10` ※ | 0.0162 | 0.1003 | 1.0114 | 0.0413 | 0.0319 | — | |

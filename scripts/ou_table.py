@@ -2,6 +2,7 @@
 """把 results/ou_table3_runs.jsonl 汇总成论文可直接用的 Markdown 表。
 
 产出（默认 results/ou_table3.md）：
+  0. 官方 / 本机自训各方法按 Agg 的最佳一组（各一张表）
   1. 每个方法的 Top-K（按 Agg 降序）+ 与论文靶值的命中判定（±tol）
   2. SimNPO 全 48 点附表：含 HM(Mem, Utility)，用于反推 OU 真实的 model-selection 规律
      （论文说按 HM(Mem, Utility) 选，而 SimNPO 的 Mem 0.32 ≈ Retain 的 0.31，
@@ -166,7 +167,7 @@ def main():
         off_best[r["method"]].append(r)
     if off_best:
         out.append("## 〇、官方 ckpt 每方法最佳（按 Agg，写入本表）\n")
-        out.append("| 方法 | 超参串 | Mem | Priv | Utility | Agg | 命中 |")
+        out.append("| 方法 | 超参串 | Agg↑ | Mem↑ | Priv↑ | Utility↑ | 命中 |")
         out.append("|---|---|---|---|---|---|---|")
         for method in ("SimNPO", "RMU", "UNDIAL", "AltPO", "NPO", "GradDiff", "IdkDPO", "IdkNLL"):
             recs = off_best.get(method)
@@ -177,8 +178,32 @@ def main():
             ok, _ = hits(r, args.tol)
             flag = "—" if ok is None else ("✅" if ok else "❌")
             out.append(
-                f"| {method} | `{r['hyper']}` | {r['Mem']:.4f} | {r['Priv']:.4f} "
-                f"| {r['Utility']:.4f} | {r['Agg']:.4f} | {flag} |"
+                f"| {method} | `{r['hyper']}` | {r['Agg']:.4f} | {r['Mem']:.4f} "
+                f"| {r['Priv']:.4f} | {r['Utility']:.4f} | {flag} |"
+            )
+        out.append("")
+
+    # ---- 0b) 本机自训每方法最佳（按 Agg） -----------------------------------
+    st_best = defaultdict(list)
+    for r in load_runs(args.runs, source="selftrain"):
+        st_best[r["method"]].append(r)
+    if st_best:
+        winners = [
+            (method, max(recs, key=lambda x: x["Agg"]))
+            for method, recs in st_best.items()
+        ]
+        winners.sort(key=lambda x: -x[1]["Agg"])
+        out.append("## 〇（本机）、自训每方法最佳（按 Agg，每方法只留最高一组）\n")
+        out.append("| 方法 | 超参串 | 运行名 | Agg↑ | Mem↑ | Priv↑ | Utility↑ | 命中 |")
+        out.append("|---|---|---|---|---|---|---|---|")
+        for method, r in winners:
+            ok, _ = hits(r, args.tol)
+            flag = "—" if ok is None else ("✅" if ok else "❌")
+            mark = " ※" if r.get("notes") else ""
+            out.append(
+                f"| {method} | `{r['hyper']}`{mark} | `{r['name']}` "
+                f"| {r['Agg']:.4f} | {r['Mem']:.4f} | {r['Priv']:.4f} "
+                f"| {r['Utility']:.4f} | {flag} |"
             )
         out.append("")
 

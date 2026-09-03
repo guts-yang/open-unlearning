@@ -2,8 +2,11 @@ model_args:
   pretrained_model_name_or_path: "meta-llama/Llama-2-7b-hf"
   attn_implementation: 'flash_attention_2'
   torch_dtype: bfloat16
+  low_cpu_mem_usage: true
 tokenizer_args:
-  pretrained_model_name_or_path: "meta-llama/Llama-2-7b-hf"
+  # MUSE target 仓没有 tokenizer；meta-llama/Llama-2-7b-hf 是 gated。
+  # 公开仓 tokenizer 与 Llama-2 词表一致，训练命令也会再钉死这一项。
+  pretrained_model_name_or_path: "NousResearch/Llama-2-7b-hf"
 template_args:  # Used in creating prompts for the dataset. See src/data/utils.py#preprocess_chat_instance.
   apply_chat_template: False
   user_start_tag: "Question: "

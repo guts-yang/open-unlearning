@@ -95,7 +95,12 @@ def _add_or_replace_eos_token(tokenizer, eos_token: str) -> None:
 
 def get_tokenizer(tokenizer_cfg: DictConfig):
     try:
-        tokenizer = AutoTokenizer.from_pretrained(**tokenizer_cfg, cache_dir=_hf_cache)
+        with open_dict(tokenizer_cfg):
+            tok_path = tokenizer_cfg.pop("pretrained_model_name_or_path", None)
+        tok_path = resolve_hf_snapshot(tok_path, kind="models")
+        tokenizer = AutoTokenizer.from_pretrained(
+            tok_path, cache_dir=_hf_cache, **tokenizer_cfg
+        )
     except Exception as e:
         error_message = (
             f"{'--' * 40}\n"

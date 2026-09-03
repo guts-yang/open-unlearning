@@ -20,6 +20,8 @@ data/
 # git 规则：父目录被 data/ 排除后，必须先否定目录本身，才能重新包含目录里的文件。
 !community/methods/TPO/data/
 !community/methods/TPO/data/**
+!community/methods/AltPO/data/
+!community/methods/AltPO/data/**
 evals/
 !*/evals/  
 # Byte-compiled / optimized / DLL files
@@ -188,3 +190,6 @@ cython_debug/
 .codebuddy/
 .cursor/
 .vscode/
+
+# 文档里的论文 PDF（体积大，不跟代码走）
+docs/**/*.pdf

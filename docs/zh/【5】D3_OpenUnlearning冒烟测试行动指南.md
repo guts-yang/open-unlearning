@@ -51,7 +51,7 @@ logsumexp 本身也可以分块累加（数值稳定），但 32k 词表在 A800
 bf16 的 softmax 在小概率尾部（恰好是 min(p,q) 的主要贡献区）误差不可忽略。模型权重保持 bf16 推理，logits upcast 成 fp32 后再算。显存账：B=4、T=512、V=32k 的 fp32 logits ≈ 262MB/模型，双模型 ≈ 524MB，80G 卡完全无压力。
 
 **要点 3：答案区掩码（SpecGap 的"定位"能力来源）**
-只对答案 token 位置累计 $s_t$。这样输出的不只是一个集合级标量，还有**逐位置 $\alpha_t$ 剖面**——$\arg\min_t s_t$ 就是"改得最狠的 token 位置"，与作者事实 token 对齐后即假遗忘检测的可视化证据（论文 Figure 3）。边界注意：question 与 answer 拼接后的分词结果 ≠ 两者分别分词的拼接，len_p 有 ±1 token 的边界误差，冒烟阶段可接受，正式实验用"答案首 token 对齐复查"消掉。
+只对答案 token 位置累计 $s_t$。这样输出的不只是一个集合级标量，还有**逐位置 $\alpha_t$ 剖面**——$\arg\min_t s_t$ 就是"改得最狠的 token 位置"，与作者事实 token 对齐后可用于 **H1/H3 待判别**（拒答式偏移 vs 弱遗忘）的可视化证据（论文 Figure 3）。边界注意：question 与 answer 拼接后的分词结果 ≠ 两者分别分词的拼接，len_p 有 ±1 token 的边界误差，冒烟阶段可接受，正式实验用"答案首 token 对齐复查"消掉。
 
 **要点 4：draft logits 离线缓存（E0 批量审计的省钱开关）**
 draft 是冻结的，同一探针集的 logits_p 只需算一次，存盘（bf16，1k 样本 ≈ 数 GB）。之后每来一个新 target checkpoint，只做一次前向 + 读缓存积分——E0 扫 8 个方法 × 3 splits 时，成本从 16 次前向降为 8 次。缓存键 = (模型路径, 数据集, split, n, max_len, 分词器) 的哈希，防串味。
@@ -187,7 +187,7 @@ def main():
             s_t = min_overlap(lp.float().unsqueeze(0), lq.unsqueeze(0),
                               mask[:, 1:].cpu())          # 逐位置重合度
             gaps.append(1.0 - s_t.mean().item())          # 样本级 SpecGap
-            profiles.append(s_t.tolist())                 # 逐位置 α_t 剖面（假遗忘证据源）
+            profiles.append(s_t.tolist())                 # 逐位置 α_t 剖面（H1/H3 待判别证据源）
 
         lo, hi = bootstrap_ci(gaps)
         results[split] = {"specgap_mean": float(np.mean(gaps)),
@@ -251,7 +251,7 @@ python specprobe.py --draft <遗忘前> --target <GA遗忘后> \
 
 ## 5. P0 之后的直接复用
 
-同一份脚本改两个参数即升级为 E0 批量审计：把 `--target` 循环换成官方 8 方法 checkpoint 列表（draft logits 缓存命中，只跑 target 前向），输出即为"全 leaderboard 假遗忘审计表"（v2 实验设计 §3）。逐位置 `profiles` 字段就是论文 Figure 3（$\alpha_t$ 剖面对比）的原始数据。
+同一份脚本改两个参数即升级为 E0 批量审计：把 `--target` 循环换成官方 8 方法 checkpoint 列表（draft logits 缓存命中，只跑 target 前向），输出即为全 leaderboard 的 SpecGap 审计表（v2 实验设计 §3）。低 SpecGap 一律标为 **待判别（H1 拒答式 / H3 弱遗忘）**，join 齐 Forget Quality（本机口径为 Mem）之前不下「假遗忘」结论。逐位置 `profiles` 字段就是论文 Figure 3（$\alpha_t$ 剖面对比）的原始数据。
 
 ---
 
@@ -340,3 +340,17 @@ python scripts/specgap_table.py
 名称关联 `results/ou_table3_runs.jsonl` 中已经存在的 Mem/Priv/Utility/Agg，
 不会为了补齐四维触发额外评测。SpecGap 原始结果与 OU `TOFU_SUMMARY.json` 分开，
 避免改变 Table 3 的既有口径。
+
+**产物路径**：
+
+| 类型 | 路径 |
+|---|---|
+| 单条原始 JSON | `$SAVES/specgap/e0/<ckpt_name>.json` |
+| 汇总表（看这个） | `results/specgap_e0.md`、`results/specgap_e0.jsonl` |
+| 失败日志 | `results/specgap_e0_failures.log` |
+
+E0 脚本每完成一条会刷新汇总表；也可随时手动：
+
+```bash
+python scripts/specgap_table.py
+```

@@ -22,6 +22,7 @@ METRIC_KEYS = [
 ]
 
 METHOD_ORDER = [
+    "SpecDiff",
     "SimNPO",
     "RMU",
     "UNDIAL",
@@ -62,6 +63,7 @@ OFFICIAL_BEST_UNLEARN = {
 
 # 方法全称（Leaderboard「全称」列）
 FULL_NAMES = {
+    "SpecDiff": "Speculative Distribution Difference",
     "SimNPO": "SimNPO: A Simple and Effective Non-Preference Optimization for Machine Unlearning",
     "RMU": "Representation Misdirection for Unlearning（Li et al., 2024）",
     "UNDIAL": "Self-Distillation with Adjusted Logits for Robust Unlearning in Large Language Models（NAACL 2025）",
@@ -74,6 +76,7 @@ FULL_NAMES = {
 
 # 与官方未调参设置（docs/repro.md）的对照结论；无条目的方法用通用说明
 SETTING_NOTES = {
+    "SpecDiff": "本仓库新增：全词表 overlap 遗忘目标 + retain KL",
     "RMU": "与官方未调参设置一致（FQ/MU/TR 量级吻合）",
     "SimNPO": "与官方未调参表超参不一致（本机 TR 0.52 vs 官方 1.07e-05，量级差异大）",
     "UNDIAL": "官方无 1B forget10 对照",

@@ -81,16 +81,18 @@ CUDA_VISIBLE_DEVICES="$GPU_IDS" accelerate launch \
   trainer.args.gradient_accumulation_steps="$GRAD_ACCUM" \
   trainer.args.ddp_find_unused_parameters=true \
   trainer.args.gradient_checkpointing=true \
+  trainer.args.optim=adamw_torch \
   "${EXTRA_ARGS[@]}"
 
 CUDA_VISIBLE_DEVICES="$EVAL_GPU" python src/eval.py experiment=eval/tofu/default.yaml \
-  forget_split="$forget_split" holdout_split="$holdout_split" \
+  forget_split="$forget_split" retain_split="$retain_split" holdout_split="$holdout_split" \
   model="$model" \
   task_name="$task_name" \
   model.model_args.pretrained_model_name_or_path="$ckpt" \
   model.tokenizer_args.pretrained_model_name_or_path="$ckpt" \
   paths.output_dir="$ckpt/evals" \
-  retain_logs_path="$RETAIN_LOGS"
+  retain_logs_path="$RETAIN_LOGS" \
+  eval.tofu.draft_model_path="$model_hf"
 
 # 四维（OU Table 3 口径）：归一化分母用 init-finetuned，sMIA 参考用 retain90
 INIT_SUMMARY="$SAVES/eval/tofu_${model}_full_local/evals_forget10/TOFU_SUMMARY.json"

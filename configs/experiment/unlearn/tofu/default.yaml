@@ -21,6 +21,7 @@ question_key: "question"
 eval:
   tofu:
     forget_split: ${forget_split}
+    retain_split: ${retain_split}
     holdout_split: ${holdout_split}
     retain_logs_path: ${retain_logs_path}
     overwrite: true

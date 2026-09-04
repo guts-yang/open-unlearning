@@ -241,6 +241,8 @@ def aggregate(target, init_sum, retain_sum, target_eval, init_eval, retain_eval,
         "fluency": fluency,
         "params": {"s_mia_theta": theta, "s_mia_mode": s_mia_mode},
     }
+    if isinstance(target.get("specgap"), dict):
+        result["SpecGap"] = target["specgap"]
     return result, denominators, retain_refs, fluency
 
 
@@ -303,6 +305,14 @@ def main():
     print("\n================ OU Table 3 四维结果 ================")
     for k in ["Mem", "Priv", "Utility", "Agg"]:
         print(f"  {k:<8} = {result[k]:.4f}")
+    if "SpecGap" in result:
+        specgap = result["SpecGap"]
+        print(
+            "  SpecGap  = "
+            f"forget {specgap['forget']['mean']:.4f}, "
+            f"retain {specgap['retain']['mean']:.4f}, "
+            f"d {specgap['cohens_d']:.3f}"
+        )
     print("\n------ 分量明细 ------")
     for k, v in result["components"]["mem"].items():
         print(f"  Mem: {k:<18} = {v:.4f}")

@@ -252,3 +252,77 @@ python specprobe.py --draft <遗忘前> --target <GA遗忘后> \
 ## 5. P0 之后的直接复用
 
 同一份脚本改两个参数即升级为 E0 批量审计：把 `--target` 循环换成官方 8 方法 checkpoint 列表（draft logits 缓存命中，只跑 target 前向），输出即为"全 leaderboard 假遗忘审计表"（v2 实验设计 §3）。逐位置 `profiles` 字段就是论文 Figure 3（$\alpha_t$ 剖面对比）的原始数据。
+
+---
+
+## 6. 项目内正式实现（2026-09-04）
+
+指南 §2 的单文件代码是算法草图；仓库正式实现已按 OpenUnlearning 的数据和实验约定拆分：
+
+| 文件 | 作用 |
+|---|---|
+| `src/evals/specgap.py` | 分布重合度、统计量、版本化 draft 分片缓存 |
+| `src/specprobe.py` | TOFU SpecProbe 命令行入口 |
+| `scripts/specgap_p0.sh` | self-test + P0 生死门 |
+| `configs/specgap/e0_tofu_forget10.yaml` | E0 八方法代表 checkpoint 清单 |
+| `scripts/specgap_e0.sh` | E0 下载→审计→删本次下载权重，支持断点续跑 |
+| `scripts/specgap_table.py` | 生成 `results/specgap_e0.jsonl` / `.md` |
+
+### 6.1 相对草图的正确性修正
+
+1. 不再用 `question + " " + answer` 单独分词。正式实现复用
+   `data.utils.preprocess_chat_instance` 和 Llama-3.2 项目 chat template；用
+   `labels[1:] != -100` 选择答案 token 对应的预测位置，消除 prompt/answer 边界误差。
+2. draft cache 只保存答案位置的 `[A,V]` bf16 logits，每个样本一个 shard；
+   积分时逐 shard 搬回 GPU。缓存键包含模型文件、tokenizer、数据 fingerprint、
+   样本索引、chat template、max length 和 schema 版本。
+3. target 与缓存 draft logits 在 GPU 上以 fp32 做全局 `logsumexp` 和分块积分；
+   不采用草图中 `.cpu()` 后进行大矩阵积分的低效路径。
+4. target checkpoint 自带 tokenizer 时必须与 draft 词表和特殊 token 完全一致；
+   checkpoint 未携带 tokenizer 时明确记录 `draft_fallback`。
+
+### 6.2 P0 命令与输出
+
+```bash
+cd /usr/local/open-unlearning
+bash scripts/specgap_p0.sh
+```
+
+默认设置：
+
+- draft：`open-unlearning/tofu_Llama-3.2-1B-Instruct_full`
+- target：`$SAVES/unlearn/tofu_1B_SimNPO_forget10`
+- forget10：全量 400 条
+- retain90：`seed=0` 固定等量抽取 400 条
+- 输出：`$SAVES/specgap/p0_self_test.json`、`p0_local_simnpo.json`
+- 通过条件：self-test mean `<1e-3`，且正式 P0 满足
+  `SpecGap_f > SpecGap_r`、Cohen's d `>0.8`
+
+P0 JSON 顶层包含 `draft`、`target`、`settings`、`splits`、`comparison` 和
+`gate`。每个 split 含 mean/std/CI、逐样本 gap、答案 token 数、argmin 位置和
+逐 token overlap profile。
+
+### 6.3 E0 命令与结果
+
+P0 通过后运行：
+
+```bash
+bash scripts/specgap_e0.sh
+# 小批试跑 / 断点调试
+bash scripts/specgap_e0.sh --limit 1
+bash scripts/specgap_e0.sh --only SimNPO
+```
+
+E0 固定扫描配置中的八个代表 checkpoint，并复用同一 draft cache。已存在结果默认
+跳过；`--force` 可重跑。只有脚本本次下载的权重会在单条结束后删除。
+
+汇总命令可独立重跑：
+
+```bash
+python scripts/specgap_table.py
+```
+
+结果表报告 SpecGap_f/r、各自 bootstrap CI、差值和 Cohen's d；仅按 checkpoint
+名称关联 `results/ou_table3_runs.jsonl` 中已经存在的 Mem/Priv/Utility/Agg，
+不会为了补齐四维触发额外评测。SpecGap 原始结果与 OU `TOFU_SUMMARY.json` 分开，
+避免改变 Table 3 的既有口径。

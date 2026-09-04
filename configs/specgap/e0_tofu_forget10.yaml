@@ -1,0 +1,25 @@
+draft: open-unlearning/tofu_Llama-3.2-1B-Instruct_full
+splits:
+  - forget10
+  - retain90
+n: 400
+seed: 0
+max_length: 512
+chunk_size: 8192
+checkpoints:
+  - method: SimNPO
+    repo_id: open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d0_g0.125_ep10
+  - method: RMU
+    repo_id: open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff100_epoch10
+  - method: GradDiff
+    repo_id: open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha5_epoch10
+  - method: NPO
+    repo_id: open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.1_alpha1_epoch10
+  - method: UNDIAL
+    repo_id: open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha1_epoch10
+  - method: AltPO
+    repo_id: open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.05_alpha1_epoch10
+  - method: IdkDPO
+    repo_id: open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr1e-05_beta0.05_alpha1_epoch10
+  - method: IdkNLL
+    repo_id: open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr1e-05_alpha10_epoch10

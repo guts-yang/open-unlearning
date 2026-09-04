@@ -313,8 +313,22 @@ bash scripts/specgap_e0.sh --limit 1
 bash scripts/specgap_e0.sh --only SimNPO
 ```
 
-E0 固定扫描配置中的八个代表 checkpoint，并复用同一 draft cache。已存在结果默认
-跳过；`--force` 可重跑。只有脚本本次下载的权重会在单条结束后删除。
+E0 每个方法**优先**审计 `results/ou_table3.md` 本机 Agg 最高点对应的
+`repo_id`（有本地权重则直接用 `local_path`，否则下载该 HF 仓库），然后再跑
+原来的官方锚点 `official_repo_id`。本机最佳与清单对照：
+
+| 方法 | 优先 repo_id / 本地名 | Agg |
+|---|---|---|
+| NPO | `..._NPO_lr1e-05_beta0.1_alpha1_epoch10` / `tofu_1B_NPO_forget10_N1` | 0.5122 |
+| SimNPO | `..._SimNPO_lr5e-05_b3.5_a1_d1_g0.125_ep10` / `S_p1best` | 0.5085 |
+| AltPO | `..._AltPO_lr2e-05_beta0.05_alpha1_epoch10` / `A1` | 0.3664 |
+| GradDiff | `..._GradDiff_lr1e-05_alpha10_epoch10` / `GD2` | 0.3519 |
+| UNDIAL | `..._UNDIAL_lr0.0001_beta10_alpha1_epoch10` / `U1` | 0.2350 |
+| RMU | `..._RMU_lr5e-05_layer5_scoeff1_epoch5` / `R_best` | 0.2302 |
+| IdkDPO / IdkNLL | 无本机记录，仍用原官方代表点 | — |
+
+已存在结果默认跳过；`--force` 可重跑。只有脚本本次下载的权重会在单条结束后删除，
+本地自训目录不会删。
 
 汇总命令可独立重跑：
 

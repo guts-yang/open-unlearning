@@ -1,5 +1,5 @@
 #!/bin/bash
-# E0: audit one representative official checkpoint for each of eight methods.
+# E0: audit local-best checkpoints first, then original official anchors.
 set -euo pipefail
 
 ROOT=/usr/local/open-unlearning
@@ -63,8 +63,10 @@ cfg = OmegaConf.to_container(OmegaConf.load(sys.argv[1]), resolve=True)
 checkpoints = cfg["checkpoints"]
 methods = [entry["method"] for entry in checkpoints]
 repos = [entry["repo_id"] for entry in checkpoints]
-if len(checkpoints) != 8 or len(set(methods)) != 8 or len(set(repos)) != 8:
-    raise SystemExit("E0 manifest must contain exactly eight unique methods/repos")
+if len(checkpoints) != 8 or len(set(methods)) != 8:
+    raise SystemExit("E0 manifest must contain exactly eight unique methods")
+if len(set(repos)) != len(repos):
+    raise SystemExit("E0 preferred repo_id values must be unique")
 print(cfg["draft"])
 print(cfg["n"])
 print(cfg["seed"])
@@ -79,18 +81,85 @@ MAX_LENGTH="${SETTINGS[3]}"
 CHUNK_SIZE="${SETTINGS[4]}"
 
 mapfile -t ENTRIES < <(python - "$CONFIG" "$ONLY" "$LIMIT" <<'PY'
+import os
 import sys
 from omegaconf import OmegaConf
 
 config_path, only, limit = sys.argv[1:4]
 cfg = OmegaConf.to_container(OmegaConf.load(config_path), resolve=True)
-entries = [
-    item for item in cfg["checkpoints"] if not only or item["method"] == only
-]
+
+
+def has_weights(path):
+    return bool(path) and os.path.isfile(os.path.join(path, "config.json"))
+
+
+entries = []
+seen = set()
+for item in cfg["checkpoints"]:
+    if only and item["method"] != only:
+        continue
+    candidates = []
+    local_path = item.get("local_path")
+    if local_path:
+        candidates.append(
+            {
+                "kind": "local",
+                "method": item["method"],
+                "source": item.get("local_name") or os.path.basename(local_path.rstrip("/")),
+                "repo_id": item["repo_id"],
+                "target": local_path,
+                "download": False,
+            }
+        )
+    candidates.append(
+        {
+            "kind": "preferred",
+            "method": item["method"],
+            "source": item["repo_id"].rsplit("/", 1)[-1],
+            "repo_id": item["repo_id"],
+            "target": item["repo_id"],
+            "download": True,
+        }
+    )
+    official = item.get("official_repo_id")
+    if official and official != item["repo_id"]:
+        candidates.append(
+            {
+                "kind": "official",
+                "method": item["method"],
+                "source": official.rsplit("/", 1)[-1],
+                "repo_id": official,
+                "target": official,
+                "download": True,
+            }
+        )
+    picked_preferred = False
+    for candidate in candidates:
+        key = candidate["source"]
+        if key in seen:
+            continue
+        if candidate["kind"] == "local" and not has_weights(candidate["target"]):
+            print(
+                f"[skip-missing-local] {candidate['method']} {candidate['target']}",
+                file=sys.stderr,
+            )
+            continue
+        if candidate["kind"] == "preferred" and picked_preferred:
+            continue
+        if candidate["kind"] == "local":
+            picked_preferred = True
+        elif candidate["kind"] == "preferred":
+            picked_preferred = True
+        seen.add(key)
+        entries.append(candidate)
+
 if limit:
-    entries = entries[:int(limit)]
+    entries = entries[: int(limit)]
 for item in entries:
-    print(f"{item['method']}\t{item['repo_id']}")
+    print(
+        f"{item['method']}\t{item['kind']}\t{item['source']}\t"
+        f"{item['repo_id']}\t{item['target']}\t{int(item['download'])}"
+    )
 PY
 )
 
@@ -102,29 +171,38 @@ fi
 i=0
 for ENTRY in "${ENTRIES[@]}"; do
   i=$((i + 1))
-  IFS=$'\t' read -r METHOD REPO_ID <<<"$ENTRY"
-  NAME="${REPO_ID##*/}"
-  MODEL_DIR="$MODEL_DIR_ROOT/$NAME"
+  IFS=$'\t' read -r METHOD KIND NAME REPO_ID TARGET DOWNLOAD <<<"$ENTRY"
   OUT="$RESULT_DIR/$NAME.json"
 
   if [[ "$FORCE" == "0" && -f "$OUT" ]]; then
-    echo "[skip] [$i/${#ENTRIES[@]}] $METHOD already audited"
+    echo "[skip] [$i/${#ENTRIES[@]}] $METHOD ($KIND) already audited"
     continue
   fi
 
-  echo "=== [$i/${#ENTRIES[@]}] $METHOD: $NAME ==="
-  DOWNLOADED=0
-  if [[ ! -f "$MODEL_DIR/config.json" ]]; then
-    DOWNLOADED=1
-    mkdir -p "$MODEL_DIR"
-    if ! huggingface-cli download "$REPO_ID" \
-      --local-dir "$MODEL_DIR" \
-      --local-dir-use-symlinks False \
-      >>"$LOG_DIR/specgap_download_$NAME.log" 2>&1; then
-      echo "$NAME download_failed" >>"$FAIL_LOG"
-      rm -rf "$MODEL_DIR"
-      echo "[fail] download failed: $REPO_ID"
+  echo "=== [$i/${#ENTRIES[@]}] $METHOD ($KIND): $NAME ==="
+  if [[ "$KIND" == "local" ]]; then
+    MODEL_DIR="$TARGET"
+    DOWNLOADED=0
+    if [[ ! -f "$MODEL_DIR/config.json" ]]; then
+      echo "$NAME local_missing" >>"$FAIL_LOG"
+      echo "[fail] local checkpoint missing: $MODEL_DIR"
       continue
+    fi
+  else
+    MODEL_DIR="$MODEL_DIR_ROOT/$NAME"
+    DOWNLOADED=0
+    if [[ ! -f "$MODEL_DIR/config.json" ]]; then
+      DOWNLOADED=1
+      mkdir -p "$MODEL_DIR"
+      if ! huggingface-cli download "$REPO_ID" \
+        --local-dir "$MODEL_DIR" \
+        --local-dir-use-symlinks False \
+        >>"$LOG_DIR/specgap_download_$NAME.log" 2>&1; then
+        echo "$NAME download_failed" >>"$FAIL_LOG"
+        rm -rf "$MODEL_DIR"
+        echo "[fail] download failed: $REPO_ID"
+        continue
+      fi
     fi
   fi
 
@@ -138,11 +216,11 @@ for ENTRY in "${ENTRIES[@]}"; do
     --chunk-size "$CHUNK_SIZE" \
     --out "$OUT" \
     2>&1 | tee -a "$LOG_DIR/specgap_$NAME.log"; then
-    echo "[ok] $METHOD"
+    echo "[ok] $METHOD $KIND"
   else
     echo "$NAME audit_failed" >>"$FAIL_LOG"
     rm -f "$OUT"
-    echo "[fail] audit failed: $METHOD"
+    echo "[fail] audit failed: $METHOD $KIND"
   fi
 
   if [[ "$DOWNLOADED" == "1" ]]; then

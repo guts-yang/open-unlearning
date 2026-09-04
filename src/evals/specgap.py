@@ -24,10 +24,32 @@ CACHE_SCHEMA_VERSION = 1
 DEFAULT_CHUNK_SIZE = 8192
 
 
+def jsonable(value: Any) -> Any:
+    """Convert nested metadata, including OmegaConf nodes, into JSON types."""
+    try:
+        from omegaconf import OmegaConf
+
+        if OmegaConf.is_config(value):
+            return jsonable(OmegaConf.to_container(value, resolve=True))
+    except ImportError:
+        pass
+    if isinstance(value, dict):
+        return {str(key): jsonable(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [jsonable(item) for item in value]
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, (np.integer, np.floating)):
+        return value.item()
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    return value
+
+
 def stable_hash(value: Any) -> str:
     """Return a stable SHA-256 hash for JSON-serializable metadata."""
     payload = json.dumps(
-        value, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+        jsonable(value), sort_keys=True, ensure_ascii=False, separators=(",", ":")
     ).encode()
     return hashlib.sha256(payload).hexdigest()
 
@@ -212,10 +234,12 @@ class DraftLogitsCache:
     """Versioned, per-sample disk cache for draft answer-position logits."""
 
     def __init__(self, root: str | Path, metadata: Mapping[str, Any]):
-        full_metadata = {
-            "schema_version": CACHE_SCHEMA_VERSION,
-            **dict(metadata),
-        }
+        full_metadata = jsonable(
+            {
+                "schema_version": CACHE_SCHEMA_VERSION,
+                **dict(metadata),
+            }
+        )
         self.metadata = full_metadata
         self.key = stable_hash(full_metadata)[:24]
         self.path = Path(root).expanduser() / self.key

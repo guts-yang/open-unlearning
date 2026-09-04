@@ -91,3 +91,18 @@ def test_draft_cache_round_trip(tmp_path):
     restored = cache.load(0)
     assert restored.dtype == torch.bfloat16
     assert torch.allclose(restored.float(), logits, atol=0.01)
+
+
+def test_draft_cache_accepts_omegaconf_metadata(tmp_path):
+    from omegaconf import OmegaConf
+
+    from evals.specgap import jsonable, stable_hash
+
+    template = OmegaConf.create({"apply_chat_template": True, "system_prompt": None})
+    plain = {"template": {"apply_chat_template": True, "system_prompt": None}}
+    assert jsonable({"template": template}) == plain
+    assert stable_hash({"template": template}) == stable_hash(plain)
+
+    cache = DraftLogitsCache(tmp_path, {"template": template, "split": "forget"})
+    cache.initialize()
+    assert cache.metadata_path.is_file()

@@ -1,6 +1,6 @@
 # MUSE / WMDP 本机复现
 
-更新时间：2026-09-04T15:02:55+08:00
+更新时间：2026-09-04T17:06:36+08:00
 
 口径见 `docs/zh/【3】muse-wmdp-repro.md`。**不进** `ou_table3_runs.jsonl`。
 
@@ -12,8 +12,8 @@ SOTA 列为 `docs/repro.md` 官方对照（KnowMem_Df / KnowMem_Dr / VerbMem_Df 
 
 | 基座名称 | SOTA | 代码链接 | 方法 | KnowMem_Df↓ | KnowMem_Dr↑ | VerbMem_Df↓ | PrivLeak→0 | 全称 | 年份/出处 | Batch | LR | Epoch | GPU型号×数量 |
 |---|---|---|---|---:|---:|---:|---:|---|---|---|---|---|---|
-| Llama-2-7B (MUSE-Books) | 0 / 0 / 0 / -0.67 | https://github.com/locuslab/open-unlearning | GradAscent | — | — | — | — | Gradient Ascent | 经典遗忘基线 | 32 (4×4×2) | 1e-5 | 10 | A800×2 |
-| Llama-2-7B (MUSE-Books) | 0.18 / 0.30 / 0.16 / -37.79 | https://github.com/locuslab/open-unlearning | GradDiff | — | — | — | — | Gradient Difference | Liu et al., 2022 | 32 (4×4×2) | 1e-5 | 10 | A800×2 |
+| Llama-2-7B (MUSE-Books) | 0 / 0 / 0 / -0.67 | https://github.com/locuslab/open-unlearning | GradAscent | 0.0000 | 0.0000 | 0.0000 | -24.3343 | Gradient Ascent | 经典遗忘基线 | 32 (4×4×2) | 1e-5 | 10 | A800×2 |
+| Llama-2-7B (MUSE-Books) | 0.18 / 0.30 / 0.16 / -37.79 | https://github.com/locuslab/open-unlearning | GradDiff | 0.0000 | 0.0000 | 0.0000 | -24.7689 | Gradient Difference | Liu et al., 2022 | 32 (4×4×2) | 1e-5 | 10 | A800×2 |
 | Llama-2-7B (MUSE-Books) | 0.32 / 0.55 / 0.84 / -54.24 | https://github.com/locuslab/open-unlearning | NPO | — | — | — | — | Negative Preference Optimization | Zhang et al., 2024 | 32 (4×4×2) | 1e-5 | 10 | A800×2 |
 | Llama-2-7B (MUSE-News) | 0 / 0 / 0 / 52.11 | https://github.com/locuslab/open-unlearning | GradAscent | 0.0000 | 0.0000 | 0.0000 | 51.6058 | Gradient Ascent | 经典遗忘基线 | 32 (4×4×2) | 1e-5 | 10 | A800×2 |
 | Llama-2-7B (MUSE-News) | 0.41 / 0.37 / 8.92e-03 / 93.23 | https://github.com/locuslab/open-unlearning | GradDiff | 0.2316 | 0.1857 | 0.0663 | 58.2704 | Gradient Difference | Liu et al., 2022 | 32 (4×4×2) | 1e-5 | 10 | A800×2 |

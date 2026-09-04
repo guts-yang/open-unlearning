@@ -1,0 +1,44 @@
+# SpecDiff TOFU-1B hyperparameter search (OpenUnlearning §F.2 protocol).
+#
+# Protocol:
+#   1. Train+eval each point with seed=0 only (skip if ou_aggregate.json exists).
+#   2. Rank by HM(Mem, Utility). Priv and SpecGap_r are reported, not used to pick.
+#   3. Replicate the winner on seeds 1 and 2.
+#   4. Do not expand (lam=3, beta=0.5): already dominated on HM and SpecGap_r.
+#
+# Fixed: warmup_steps=1, tau=0.02, chunk_size=8192,
+#        draft=open-unlearning/tofu_Llama-3.2-1B-Instruct_full.
+
+defaults: &defaults
+  lam: 1.0
+  beta: 0.1
+  kappa: 0.3
+  tau: 0.02
+  lr: 5.0e-5
+  epochs: 10
+
+# Stage A — OU-style lr × epoch around the current method (6).
+# Skip the already-finished winner when launching.
+stage_a:
+  - {<<: *defaults, lr: 1.0e-5, epochs: 5}
+  - {<<: *defaults, lr: 1.0e-5, epochs: 10}
+  - {<<: *defaults, lr: 2.0e-5, epochs: 5}
+  - {<<: *defaults, lr: 2.0e-5, epochs: 10}
+  - {<<: *defaults, lr: 5.0e-5, epochs: 5}
+  - {<<: *defaults, lr: 5.0e-5, epochs: 10, done: true, note: "winner of first 3-seed group"}
+
+# Stage B — retain knobs, one-factor around winner. Exclude lam=3/beta=0.5.
+stage_b:
+  - {<<: *defaults, lam: 0.5}
+  - {<<: *defaults, lam: 2.0}
+  - {<<: *defaults, beta: 0.0}
+  - {<<: *defaults, beta: 0.3}
+
+# Stage C — forget cap (kappa). 0.2 = stop earlier; 0.5 = allow lower overlap.
+stage_c:
+  - {<<: *defaults, kappa: 0.2}
+  - {<<: *defaults, kappa: 0.5}
+
+# Already evaluated, do not rerun as search points.
+exclude:
+  - {lam: 3.0, beta: 0.5, kappa: 0.3, lr: 5.0e-5, epochs: 10, note: "HM and SpecGap_r both worse"}

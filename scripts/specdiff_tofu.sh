@@ -13,6 +13,11 @@ MODE="${1:-smoke}"
 MODEL="Llama-3.2-1B-Instruct"
 SPLIT="forget10"
 SAVES="${SAVES:-/root/autodl-tmp/saves}"
+TAG_PREFIX="${SPECDIFF_TAG:+${SPECDIFF_TAG}_}"
+LAM="${SPECDIFF_LAM:-1.0}"
+BETA="${SPECDIFF_BETA:-0.1}"
+KAPPA="${SPECDIFF_KAPPA:-0.3}"
+TAU="${SPECDIFF_TAU:-0.02}"
 COMMON_ARGS=(
   trainer.args.learning_rate=5e-5
   trainer.args.optim=adamw_torch
@@ -20,10 +25,10 @@ COMMON_ARGS=(
   trainer.args.eval_on_start=false
   trainer.args.eval_strategy=no
   trainer.method_args.draft_model_path=open-unlearning/tofu_Llama-3.2-1B-Instruct_full
-  trainer.method_args.lam=1.0
-  trainer.method_args.beta=0.1
-  trainer.method_args.kappa=0.3
-  trainer.method_args.tau=0.02
+  trainer.method_args.lam="$LAM"
+  trainer.method_args.beta="$BETA"
+  trainer.method_args.kappa="$KAPPA"
+  trainer.method_args.tau="$TAU"
   trainer.method_args.warmup_steps=1
   trainer.method_args.chunk_size=8192
 )
@@ -73,7 +78,7 @@ PY
 run_seeds() {
   local seed
   for seed in 0 1 2; do
-    run_one "seed${seed}" \
+    run_one "${TAG_PREFIX}seed${seed}" \
       trainer.args.seed="$seed" \
       trainer.args.logging_steps=5 \
       trainer.args.num_train_epochs=10
@@ -88,5 +93,8 @@ case "$MODE" in
     run_smoke
     run_seeds
     ;;
-  *) echo "usage: $0 [smoke|seeds|all]"; exit 2 ;;
+  grid)
+    python scripts/specdiff_grid.py
+    ;;
+  *) echo "usage: $0 [smoke|seeds|all|grid]"; exit 2 ;;
 esac

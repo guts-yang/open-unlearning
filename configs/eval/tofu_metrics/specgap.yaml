@@ -1,0 +1,32 @@
+# @package eval.tofu.metrics.specgap
+handler: specgap
+draft_model_path: ${eval.tofu.draft_model_path}
+retain_n: 400
+seed: 0
+chunk_size: 8192
+n_bootstrap: 1000
+cache_dir: ${eval.tofu.specgap_cache_dir}
+
+datasets:
+  TOFU_QA_forget:
+    handler: QADataset
+    access_key: forget
+    args:
+      hf_args:
+        name: ${eval.tofu.forget_split}
+        split: train
+        path: locuslab/TOFU
+      question_key: ${eval.tofu.question_key}
+      answer_key: answer
+      max_length: 512
+  TOFU_QA_retain:
+    handler: QADataset
+    access_key: retain
+    args:
+      hf_args:
+        name: ${eval.tofu.retain_split}
+        split: train
+        path: locuslab/TOFU
+      question_key: ${eval.tofu.question_key}
+      answer_key: answer
+      max_length: 512

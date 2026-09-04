@@ -44,6 +44,71 @@ def compute_batch_nll(model, inputs):
     return loss, outputs
 
 
+def compute_specdiff_statistics(
+    draft_logits,
+    target_logits,
+    labels,
+    chunk_size=8192,
+    compute_kl=True,
+):
+    """Return per-sample overlap and KL(q || draft) on answer prediction tokens.
+
+    Softmax normalization is over the full vocabulary. Vocabulary chunks only
+    bound the temporary probability tensors; all arithmetic used by the
+    overlap integral is fp32. Gradients flow through ``target_logits`` only.
+    """
+    if draft_logits.shape != target_logits.shape:
+        raise ValueError(
+            "Draft/target logits differ in shape: "
+            f"{tuple(draft_logits.shape)} vs {tuple(target_logits.shape)}"
+        )
+    if draft_logits.ndim != 3:
+        raise ValueError("SpecDiff logits must have shape [batch, sequence, vocab]")
+    if labels.shape != draft_logits.shape[:2]:
+        raise ValueError(
+            f"Labels shape {tuple(labels.shape)} does not match logits "
+            f"{tuple(draft_logits.shape[:2])}"
+        )
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be positive")
+
+    draft = draft_logits[..., :-1, :].detach()
+    target = target_logits[..., :-1, :]
+    mask = labels[..., 1:].ne(-100)
+    token_counts = mask.sum(dim=-1)
+    if bool((token_counts == 0).any()):
+        raise ValueError("Every SpecDiff sample must contain an answer token")
+
+    draft_lse = torch.logsumexp(draft.float(), dim=-1, keepdim=True)
+    target_lse = torch.logsumexp(target.float(), dim=-1, keepdim=True)
+    token_overlap = torch.zeros_like(target_lse[..., 0])
+    token_kl = torch.zeros_like(token_overlap) if compute_kl else None
+
+    vocab_size = target.shape[-1]
+    for start in range(0, vocab_size, chunk_size):
+        stop = min(start + chunk_size, vocab_size)
+        draft_log_prob = draft[..., start:stop].float() - draft_lse
+        target_log_prob = target[..., start:stop].float() - target_lse
+        draft_prob = draft_log_prob.exp()
+        target_prob = target_log_prob.exp()
+        token_overlap = token_overlap + torch.minimum(
+            draft_prob, target_prob
+        ).sum(dim=-1)
+        if compute_kl:
+            token_kl = token_kl + (
+                target_prob * (target_log_prob - draft_log_prob)
+            ).sum(dim=-1)
+
+    mask_float = mask.to(dtype=token_overlap.dtype)
+    sample_overlap = (token_overlap * mask_float).sum(dim=-1) / token_counts
+    sample_overlap = sample_overlap.clamp(0.0, 1.0)
+    if not compute_kl:
+        return sample_overlap, None
+
+    sample_kl = (token_kl * mask_float).sum(dim=-1) / token_counts
+    return sample_overlap, sample_kl
+
+
 def compute_dpo_loss(model, ref_model, win_inputs=None, lose_inputs=None, beta=1.0):
     if win_inputs is None and lose_inputs is None:
         raise ValueError("Both win_inputs and lose_inputs can't be None")

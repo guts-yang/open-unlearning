@@ -32,6 +32,24 @@
 | TPO | `lr1e-5_beta0.19_alpha0_gpt_ep10` | `tofu_1B_TPO_forget10_TPO1` | 0.0007 | 0.3994 | 0.3086 | 0.0002 | — |
 | GradAscent | `default_lr1e-05_ep10` ※ | `tofu_1B_GradAscent_forget10_GA1` | 0.0000 | 0.9724 | 0.4809 | 0.0000 | — |
 
+<!-- specdiff-ou-table-begin -->
+## 〇、SpecDiff（本机自训，HM(Mem,Utility) 选点）
+
+写入 `results/ou_table3_runs.jsonl`（source=selftrain）。网格未完成时此表会随 `specdiff_table.py` 刷新。
+
+**当前 HM 最高超参：** `lr5e-05_lam1_b0.1_k0.3_t0.02_ep5`（HM=0.5514，Agg=0.5855）。
+**当前 Agg 最高单次：** `lr5e-05_lam1_b0.1_k0.3_t0.02_ep10` seed=1（Agg=0.5992，Mem=0.4148，Priv=0.7794，Utility=0.7617）。
+
+| 超参串 | N | Mem | Priv | Utility | Agg | HM(Mem,Utility) |
+|---|---:|---:|---:|---:|---:|---:|| `lr5e-05_lam1_b0.1_k0.3_t0.02_ep5` ← 选中 | 1 | 0.4380 | 0.6681 | 0.7440 | 0.5855 | 0.5514 |
+| `lr5e-05_lam1_b0.1_k0.3_t0.02_ep10` | 3 | 0.4257 | 0.6878 | 0.7424 | 0.5809 | 0.5410 |
+| `lr2e-05_lam1_b0.1_k0.3_t0.02_ep10` | 1 | 0.3603 | 0.4500 | 0.9240 | 0.4935 | 0.5185 |
+| `lr2e-05_lam1_b0.1_k0.3_t0.02_ep5` | 1 | 0.3531 | 0.4495 | 0.9086 | 0.4872 | 0.5086 |
+| `lr5e-05_lam3_b0.5_k0.3_t0.02_ep10` | 3 | 0.3510 | 0.3194 | 0.7355 | 0.4079 | 0.4750 |
+| `lr1e-05_lam1_b0.1_k0.3_t0.02_ep10` | 1 | 0.3116 | 0.2575 | 0.9703 | 0.3693 | 0.4718 |
+| `lr1e-05_lam1_b0.1_k0.3_t0.02_ep5` | 1 | 0.2823 | 0.2188 | 0.9700 | 0.3281 | 0.4373 |
+<!-- specdiff-ou-table-end -->
+
 ## 一、各方法 Top-K（按 Agg 降序）
 
 ### AltPO（3 个 ckpt）

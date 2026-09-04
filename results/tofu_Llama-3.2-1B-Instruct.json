@@ -5,53 +5,53 @@
     {
       "method": "SpecDiff",
       "forget_split": "forget10",
-      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_SpecDiff_forget10_g_lr2e-5_lam1_b0.1_k0.3_ep5",
-      "updated_at": "2026-09-04T23:47:25+08:00",
+      "ckpt": "/root/autodl-tmp/saves/unlearn/tofu_1B_SpecDiff_forget10_g_lr5e-5_lam0.5_b0.1_k0.3_ep10",
+      "updated_at": "2026-09-05T00:20:46+08:00",
       "metrics": {
-        "forget_quality": 0.28118158736530297,
-        "model_utility": 0.4987738637315435,
-        "forget_truth_ratio": 0.6601691457240512,
-        "forget_Q_A_Prob": 0.09563247680664062,
-        "forget_Q_A_ROUGE": 0.2960858150150636,
-        "privleak": -15.790832335317646,
-        "extraction_strength": 0.06477366283015011
+        "forget_quality": 0.18096072488295206,
+        "model_utility": 0.3451213779004835,
+        "forget_truth_ratio": 0.6301251075735358,
+        "forget_Q_A_Prob": 0.042790992259979246,
+        "forget_Q_A_ROUGE": 0.30665870503080517,
+        "privleak": 5.253993641715457,
+        "extraction_strength": 0.05619121900991386
       },
       "metrics_extra": {
-        "exact_memorization": 0.5903538344800472,
-        "forget_Q_A_PARA_Prob": 0.030674333572387694,
-        "forget_Q_A_gibberish": 0.9354176036454738,
-        "mia_loss": 0.4844625,
-        "mia_min_k": 0.480103125,
-        "mia_min_k_plus_plus": 0.5242249999999999,
-        "mia_zlib": 0.40259999999999996,
+        "exact_memorization": 0.5444253904372454,
+        "forget_Q_A_PARA_Prob": 0.01682835578918457,
+        "forget_Q_A_gibberish": 0.9012627932848409,
+        "mia_loss": 0.34886875,
+        "mia_min_k": 0.350175,
+        "mia_min_k_plus_plus": 0.46345,
+        "mia_zlib": 0.2982437499999999,
         "specgap": {
           "forget": {
             "n": 400,
-            "mean": 0.3928637107461691,
-            "std": 0.06880930630513314,
+            "mean": 0.43663399904966355,
+            "std": 0.07516822404609479,
             "ci95": [
-              0.3852502757422626,
-              0.3995567036531866
+              0.4293426852915436,
+              0.44412946656905117
             ]
           },
           "retain": {
             "n": 400,
-            "mean": 0.18498300433158874,
-            "std": 0.06297868099226324,
+            "mean": 0.3089784025400877,
+            "std": 0.09563172708489681,
             "ci95": [
-              0.1788500024564564,
-              0.1911465054154396
+              0.299633339330554,
+              0.31828885517269373
             ]
           },
-          "mean_difference": 0.20788070641458037,
-          "cohens_d": 3.151691690122882
+          "mean_difference": 0.12765559650957586,
+          "cohens_d": 1.4841823349398284
         }
       },
       "ou_table3": {
-        "Mem": 0.3530937801929308,
-        "Priv": 0.449542686929751,
-        "Utility": 0.908573542297361,
-        "Agg": 0.48723303125323686,
+        "Mem": 0.4214777203813075,
+        "Priv": 0.736773143299454,
+        "Utility": 0.730976533788878,
+        "Agg": 0.5884767415647068,
         "params": {
           "s_mia_theta": 9.05,
           "s_mia_mode": "symmetric"

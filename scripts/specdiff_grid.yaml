@@ -3,7 +3,7 @@
 # Protocol:
 #   1. Train+eval each point with seed=0 only (skip if ou_aggregate.json exists).
 #   2. Rank by HM(Mem, Utility). Priv and SpecGap_r are reported, not used to pick.
-#   3. Replicate the winner on seeds 1 and 2.
+#   3. Replicate the top-3 HM points on seeds 1 and 2.
 #   4. Do not expand (lam=3, beta=0.5): already dominated on HM and SpecGap_r.
 #
 # Fixed: warmup_steps=1, tau=0.02, chunk_size=8192,

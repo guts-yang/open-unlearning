@@ -4,6 +4,7 @@
 import json
 import os
 import re
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -117,6 +118,78 @@ def summarize(group):
     return means, stds
 
 
+def export_ou_table3(rows):
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from ou_append_run import append_run
+
+    runs_path = str(RESULTS / "ou_table3_runs.jsonl")
+    for row in rows:
+        append_run(
+            name=f"tofu_1B_SpecDiff_forget10_{row['tag']}",
+            agg_json=str(Path(row["checkpoint"]) / "evals" / "ou_aggregate.json"),
+            runs_path=runs_path,
+            method="SpecDiff",
+            hyper=row["hyper"],
+            source="selftrain",
+            ckpt_path=row["checkpoint"],
+        )
+
+
+def _replace_marked_block(text, begin, end, body):
+    block = f"{begin}\n{body.rstrip()}\n{end}"
+    pattern = re.compile(
+        re.escape(begin) + r".*?" + re.escape(end),
+        flags=re.DOTALL,
+    )
+    if pattern.search(text):
+        return pattern.sub(block, text)
+    needle = "## 一、各方法 Top-K"
+    if needle in text:
+        return text.replace(needle, block + "\n\n" + needle)
+    return text.rstrip() + "\n\n" + block + "\n"
+
+
+def patch_ou_table3_md(rows, ranked):
+    path = RESULTS / "ou_table3.md"
+    if not path.is_file() or not ranked:
+        return
+    _, selected_hyper, _, means, _ = ranked[0]
+    best = max(rows, key=lambda row: row["Agg"])
+    section = "\n".join(
+        [
+            "## 〇、SpecDiff（本机自训，HM(Mem,Utility) 选点）",
+            "",
+            "写入 `results/ou_table3_runs.jsonl`（source=selftrain）。网格未完成时此表会随 `specdiff_table.py` 刷新。",
+            "",
+            f"**当前 HM 最高超参：** `{selected_hyper}`"
+            f"（HM={fmt(means['HM_MU'])}，Agg={fmt(means['Agg'])}）。",
+            f"**当前 Agg 最高单次：** `{best['hyper']}` seed={best['seed']}"
+            f"（Agg={fmt(best['Agg'])}，Mem={fmt(best['Mem'])}，"
+            f"Priv={fmt(best['Priv'])}，Utility={fmt(best['Utility'])}）。",
+            "",
+            "| 超参串 | N | Mem | Priv | Utility | Agg | HM(Mem,Utility) |",
+            "|---|---:|---:|---:|---:|---:|---:|",
+            "",
+        ]
+    )
+    for _, hyper, group, gmeans, gstds in ranked:
+        mark = " ← 选中" if hyper == selected_hyper else ""
+        section += (
+            f"| `{hyper}`{mark} | {len(group)} | "
+            f"{fmt(gmeans['Mem'])} | {fmt(gmeans['Priv'])} | "
+            f"{fmt(gmeans['Utility'])} | {fmt(gmeans['Agg'])} | "
+            f"{fmt(gmeans['HM_MU'])} |\n"
+        )
+    text = _replace_marked_block(
+        path.read_text(),
+        "<!-- specdiff-ou-table-begin -->",
+        "<!-- specdiff-ou-table-end -->",
+        section,
+    )
+    path.write_text(text)
+    print(f"[ou-table3] patched SpecDiff block in {path}")
+
+
 def main():
     rows = discover_rows()
     groups = defaultdict(list)
@@ -215,7 +288,7 @@ def main():
         "",
         "## 网格搜索怎么做（§F.2）",
         "",
-        "选择规则与 OU 相同：**每个超参只跑 seed=0**，按 **HM(Mem, Utility)** 排序取最高点，再只对中选点补 seed 1/2。",
+        "选择规则与 OU 相同：**每个超参只跑 seed=0**，按 **HM(Mem, Utility)** 排序，再对最高的 **3** 组补 seed 1/2。",
         "Priv / SpecGap 只记录，不进选择。固定 `warmup_steps=1`、`τ=0.02`、draft=full。",
         "清单见 `scripts/specdiff_grid.yaml`（12 点；其中 1 点已完成，排除已失败的 λ=3/β=0.5）。",
         "",
@@ -254,6 +327,8 @@ def main():
 
     markdown_path = RESULTS / "specdiff_tofu.md"
     markdown_path.write_text("\n".join(lines) + "\n")
+    export_ou_table3(rows)
+    patch_ou_table3_md(rows, ranked)
     print(f"[done] groups={len(groups)} runs={len(rows)} markdown={markdown_path}")
 
 

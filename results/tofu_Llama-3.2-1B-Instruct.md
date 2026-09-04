@@ -2,7 +2,7 @@
 
 本机复现结果（动态表）。同一方法同一 forget split 会被覆盖更新。
 
-更新时间：2026-09-04T22:23:18+08:00
+更新时间：2026-09-04T23:47:25+08:00
 
 ## 复现 Leaderboard（每基座取 SOTA）
 
@@ -18,7 +18,7 @@ FQ = forget_quality，MU = model_utility，TR = forget_truth_ratio，ES = extrac
 
 | 基座名称 | 方法 | FQ↑ | MU↑ | 1−RL↑ | TR↑ | 1-Prob↑ | 1-ES↑ |
 |----------|------|-----|-----|-------|-----|---------|-------|
-| Llama-3.2-1B-Instruct | SpecDiff | 0.0935 | 0.3419 | 0.6994 | 0.6429 | 0.9532 | 0.9437 |
+| Llama-3.2-1B-Instruct | SpecDiff | 0.2812 | 0.4988 | 0.7039 | 0.6602 | 0.9044 | 0.9352 |
 | Llama-3.2-1B-Instruct | SimNPO | 2.78e-16 | 0.5800 | 0.5211 | 0.5177 | 0.4145 | 0.8188 |
 | Llama-3.2-1B-Instruct | **RMU** | 4.24e-17 | 0.5853 | 0.9604 | 0.7718 | 0.9999 | 0.9675 |
 | Llama-3.2-1B-Instruct | UNDIAL | 6.16e-18 | 0.5655 | 0.6623 | 0.5617 | 0.7434 | 0.9549 |
@@ -30,7 +30,7 @@ Mem=HM(1−ES,1−EM,1−ParaProb,1−TR)；Priv=HM(s_LOSS,s_ZLib,s_MinK,s_MinK+
 
 | 基座名称 | 方法 | split | Mem | Priv | Utility | Agg | ckpt |
 |----------|------|-------|-----|------|---------|-----|------|
-| Llama-3.2-1B-Instruct | SpecDiff | forget10 | 0.4268 | 0.6812 | 0.7267 | 0.5784 | /root/autodl-tmp/saves/unlearn/tofu_1B_SpecDiff_forget10_seed2 |
+| Llama-3.2-1B-Instruct | SpecDiff | forget10 | 0.3531 | 0.4495 | 0.9086 | 0.4872 | /root/autodl-tmp/saves/unlearn/tofu_1B_SpecDiff_forget10_g_lr2e-5_lam1_b0.1_k0.3_ep5 |
 
 ## 官方未调参对照（仅 FQ / MU / TR）
 
@@ -38,7 +38,7 @@ Mem=HM(1−ES,1−EM,1−ParaProb,1−TR)；Priv=HM(s_LOSS,s_ZLib,s_MinK,s_MinK+
 
 | 方法 | split | 官方 FQ | 官方 MU | 官方 TR | 本机 FQ | 本机 MU | 本机 TR |
 |------|-------|---------|---------|---------|---------|---------|---------|
-| SpecDiff | forget10 | — | — | — | 0.0935 | 0.3419 | 0.6429 |
+| SpecDiff | forget10 | — | — | — | 0.2812 | 0.4988 | 0.6602 |
 | SimNPO | forget10 | 2.47e-203 | 0.5400 | 1.07e-05 | 2.78e-16 | 0.5800 | 0.5177 |
 | RMU | forget10 | 3.15e-15 | 0.5900 | 0.7600 | 4.24e-17 | 0.5853 | 0.7718 |
 | UNDIAL | forget10 | — | — | — | 6.16e-18 | 0.5655 | 0.5617 |

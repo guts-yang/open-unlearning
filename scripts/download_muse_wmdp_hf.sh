@@ -137,6 +137,7 @@ snapshot_download(
     repo_type=repo_type,
     local_dir=dest,
     cache_dir=cache,
+    ignore_file_pattern=["*.bin"] if repo_type == "model" else None,
 )
 print("modelscope ok", repo, dest)
 PY
@@ -145,18 +146,20 @@ PY
 dl_repo () {
   local repo_type="$1" repo="$2" key="$3"
   shift 3
-  local extra=("$@")
-  local snap
   if hub_ready "$repo_type" "$repo"; then
     echo "[hub-ready] $repo"
     return 0
   fi
-  snap="$(plant_snap "$repo_type" "$repo")"
-  if retry 2 huggingface-cli download "$repo" --repo-type "$repo_type" \
-       "${extra[@]}" --local-dir "$snap"; then
+  echo "[get] $repo via $HF_ENDPOINT (no-HEAD)"
+  if retry 3 python "$ROOT/scripts/_hf_get_snapshot.py" "$repo" "$repo_type"; then
     return 0
   fi
-  echo "[fallback] ModelScope $repo -> $snap"
+  if retry 2 huggingface-cli download "$repo" --repo-type "$repo_type"; then
+    return 0
+  fi
+  echo "[fallback] ModelScope $repo"
+  local snap
+  snap="$(plant_snap "$repo_type" "$repo")"
   ms_snapshot "$repo_type" "$repo" "$snap"
 }
 

@@ -2,7 +2,8 @@
 
 > 分支：`repro/ou-table3`　|　2026-09-03　|　超参对齐 OU 官方复现页 + Hydra 实验默认，**不是** Appendix F.2 的 TOFU-1B 网格。
 > 入口：`bash scripts/run_muse_wmdp_matrix.sh`（P0）或 `--full`。
-> 结果：`results/muse_wmdp_runs.jsonl`、`results/muse_wmdp.md`。**禁止**写入 `ou_table3_runs.jsonl`。
+> 结果：`results/muse_wmdp_runs.jsonl`、`results/muse_wmdp.md`。**禁止**写入 `ou_table3_runs.jsonl`。  
+> 2026-09-04 已停跑；未完成清单见 [`【4】muse-wmdp-remaining.md`](【4】muse-wmdp-remaining.md)。
 
 ## 一、超参出处
 

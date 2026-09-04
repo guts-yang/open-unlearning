@@ -96,6 +96,7 @@ CUDA_VISIBLE_DEVICES="$EVAL_GPU" python src/eval.py experiment=eval/tofu/default
 
 # 四维（OU Table 3 口径）：归一化分母用 init-finetuned，sMIA 参考用 retain90
 INIT_SUMMARY="$SAVES/eval/tofu_${model}_full_local/evals_forget10/TOFU_SUMMARY.json"
+[[ -f "$INIT_SUMMARY" ]] || INIT_SUMMARY="$SAVES/eval/tofu_${model}_full/evals_forget10/TOFU_SUMMARY.json"
 [[ -f "$INIT_SUMMARY" ]] || INIT_SUMMARY="saves/eval/tofu_${model}_full/evals_forget10/TOFU_SUMMARY.json"
 RETAIN_SUMMARY="${RETAIN_LOGS%/TOFU_EVAL.json}/TOFU_SUMMARY.json"
 

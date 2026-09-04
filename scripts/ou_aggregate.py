@@ -73,6 +73,23 @@ def hmean(values):
     return len(vals) / sum(1.0 / v for v in vals)
 
 
+def hmean_drop_negatives(named_values):
+    """1−norm 为负时夹到 0 且不参与 HM（与 results/ou_table3.md ※ 口径一致）。"""
+    notes = []
+    kept = [] 
+    for name, value in named_values:
+        value = float(value)
+        if value < 0:
+            notes.append(
+                f"{name} raw={value:.6f}<0 → clamp 0 且不参与 HM（target 略高于 init）"
+            )
+            continue
+        kept.append(value)
+    if not kept:
+        return 0.0, notes
+    return hmean(kept), notes
+
+
 def load_json(path, what):
     if not path or not os.path.exists(path):
         raise FileNotFoundError(f"{what} 文件不存在: {path}")
@@ -184,7 +201,14 @@ def aggregate(target, init_sum, retain_sum, target_eval, init_eval, retain_eval,
         )
     tr_n = norm(tr_t, tr_i, "TR")
 
-    mem = hmean([1 - es_n, 1 - em_n, 1 - pp_n, 1 - tr_n])
+    mem, mem_notes = hmean_drop_negatives(
+        [
+            ("1-norm(ES)", 1 - es_n),
+            ("1-norm(EM)", 1 - em_n),
+            ("1-norm(ParaProb)", 1 - pp_n),
+            ("1-norm(TR)", 1 - tr_n),
+        ]
+    )
 
     # -- Priv -----------------------------------------------------------------
     retain_refs = {}
@@ -209,6 +233,14 @@ def aggregate(target, init_sum, retain_sum, target_eval, init_eval, retain_eval,
     elif assume_fluency is not None:
         flu_n = float(assume_fluency)
         fluency = {"assumed": flu_n, "reason": "缺少 forget_Q_A_gibberish，使用 --assume-fluency"}
+    elif flu_t is not None and flu_i is None:
+        flu_n = 1.0
+        fluency = {
+            "target": flu_t,
+            "init": None,
+            "assumed": flu_n,
+            "reason": "init-finetuned 无 Fluency 分母，norm(Fluency) 按 1 处理",
+        }
     else:
         raise ValueError(
             "缺少 forget_Q_A_gibberish（Fluency），请先运行完整评测或提供 --assume-fluency"
@@ -240,6 +272,7 @@ def aggregate(target, init_sum, retain_sum, target_eval, init_eval, retain_eval,
         "retain_refs": retain_refs,
         "fluency": fluency,
         "params": {"s_mia_theta": theta, "s_mia_mode": s_mia_mode},
+        "notes": mem_notes,
     }
     if isinstance(target.get("specgap"), dict):
         result["SpecGap"] = target["specgap"]
@@ -327,6 +360,10 @@ def main():
     for k, v in retain_refs.items():
         print(f"  {k:<16} = {v:.5f}")
     print(f"\n  Fluency: target={fluency}")
+    if result.get("notes"):
+        print("\n------ 备注（※） ------")
+        for note in result["notes"]:
+            print(f"  {note}")
     print(f"  sMIA theta = {args.s_mia_theta}")
 
 

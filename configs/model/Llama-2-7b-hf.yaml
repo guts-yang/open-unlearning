@@ -3,7 +3,8 @@ model_args:
   attn_implementation: 'flash_attention_2'
   torch_dtype: bfloat16
 tokenizer_args:
-  pretrained_model_name_or_path: "meta-llama/Llama-2-7b-hf"
+  # MUSE target repos have no tokenizer; local cache is NousResearch (meta-llama is gated).
+  pretrained_model_name_or_path: "NousResearch/Llama-2-7b-hf"
 template_args:  # Used in creating prompts for the dataset. See src/data/utils.py#preprocess_chat_instance.
   apply_chat_template: False
   user_start_tag: "Question: "

@@ -83,7 +83,7 @@ MUSE/WMDP 在 OU 论文里对应 **Table 4/5**，不是 Table 3 的 Mem/Priv/Uti
 
 | # | 内容 | 大小 | 状态 |
 |---|------|------|------|
-| 1 | WMDP corpus（bio/chem/cyber） | ~2G | ✅ **cyber 全齐 / bio 缺 forget**（见下） |
+| 1 | WMDP corpus（bio/chem/cyber） | ~2G | ✅ **cyber 全齐**；bio-forget 慢速后台爬取中（见下，不阻塞任何计划） |
 | 2 | `muse-bench/MUSE-News`（数据集） | ~0.2G | ✅ |
 | 3 | `muse-bench/MUSE-Books`（数据集） | ~0.3G | ✅ |
 | 4 | `muse-bench/MUSE-News_target`（7B） | 26G | ✅（hub 实测 26G，比论文口径 13G 大，含 fp32 冗余格式） |
@@ -106,7 +106,14 @@ S3 直连太慢（250M 爬了 1 小时才 14M），改走 HF 官方 `cais/wmdp-c
 ```
 
 - `wmdp-cyber`（`configs/experiment/unlearn/wmdp/default.yaml` 的默认 `data_split=cyber`）数据**全齐**，hydra 干跑验证通过（zephyr 已缓存、`wmdp_cyber` 任务就绪）。
-- **缺口归因：`bio-forget-corpus` 缺失**。HF 官方 `cais/wmdp-corpora` repo 不含它；补源 `cais/wmdp-bio-forget-corpus` 是 **gated repo（403，需在 HF 网页申请授权）**。两条路：① S3 慢通道 wget 继续爬完 zip 后解压（后台进行中，不阻塞）；② 在 HF 网页给账号申请 gated 授权后 `huggingface-cli download cais/wmdp-bio-forget-corpus`。跑 WMDP-cyber 不受影响。
+- **缺口归因：`bio-forget-corpus` 缺失**。HF 官方 `cais/wmdp-corpora` repo 不含它；两个补源 `cais/wmdp-bio-forget-corpus` 与 `justinphan3110/wmdp-bio-forget-corpus` **均为 gated repo（403）**——bio 语料涉生物安全内容，HF 上普遍上锁。两条正路：① S3 官方 zip（不需要授权）；② 在 HF 网页登录申请 gated 授权（通常自动批准）后 `huggingface-cli download cais/wmdp-bio-forget-corpus --repo-type dataset`。
+- **S3 加速**：单连接 ~10KB/s，已改 16 段并行（`scripts/download_wmdp_s3_parallel.sh`，curl -r 分段 + 断点续传）。实测白天 ~135KB/s（13 倍），但晚间国际链路拥塞时 16 段合计仍掉到 ~5KB/s——**瓶颈是链路本身，换工具无效**。两个后台进程（并行分段 + `wget -c`）挂着持续磨，预计数小时至隔夜完成；GitHub 无镜像，ghproxy 不适用（非 GitHub 资产）。
+- **务实结论**：`bio-forget-corpus.jsonl` 仅 `data_split=bio` 用到，**计划内（WMDP-cyber）完全不需要**。优先级排序：① 不管它，后台爬到哪算哪；② 真要跑 bio 时，在 HF 网页申请 `cais/wmdp-bio-forget-corpus` 的 gated 授权（自动批准），然后镜像秒下。
+- zip 就位后的收尾（解出 bio-forget-corpus.jsonl 放进 jsonl 目录）：
+  ```bash
+  unzip -o -P wmdpcorpora /root/autodl-tmp/data/wmdp/wmdp-corpora.zip -d /tmp/wmdp_unzip
+  find /tmp/wmdp_unzip -name "bio-forget-corpus.jsonl" -exec cp {} /root/autodl-tmp/data/wmdp/wmdp-corpora_jsonl/ \;
+  ```
 - HF 大件下载注意：hf-mirror 长连接在 7B 单分片（~4.9G）处会掐断（`IncompleteRead`），hub 缓存支持断点续传，重跑 `download_muse_wmdp_hf.sh` 即续传（自动补跑循环已验证有效：News_target 首轮 2.0G 处断，第二轮续传 1 分钟完成）。
 
 ## 六、建议执行顺序

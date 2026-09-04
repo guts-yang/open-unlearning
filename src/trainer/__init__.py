@@ -1,3 +1,4 @@
+import inspect
 import torch
 from typing import Dict, Any
 from omegaconf import DictConfig
@@ -58,7 +59,7 @@ def load_trainer(
     template_args=None,
 ):
     trainer_args = trainer_cfg.args
-    method_args = trainer_cfg.get("method_args", {})
+    method_args = dict(trainer_cfg.get("method_args", {}) or {})
     trainer_args = load_trainer_args(trainer_args, train_dataset)
     trainer_handler_name = trainer_cfg.get("handler")
     assert trainer_handler_name is not None, ValueError(
@@ -68,6 +69,53 @@ def load_trainer(
     assert trainer_cls is not None, NotImplementedError(
         f"{trainer_handler_name} not implemented or not registered"
     )
+    skip_init = {
+        "self",
+        "evaluators",
+        "template_args",
+        "model",
+        "args",
+        "train_dataset",
+        "eval_dataset",
+        "processing_class",
+        "data_collator",
+        "compute_metrics",
+        "callbacks",
+        "optimizers",
+        "preprocess_logits_for_metrics",
+    }
+    allowed = set()
+    for cls in trainer_cls.__mro__:
+        if cls in (Trainer, FinetuneTrainer, object):
+            continue
+        init = getattr(cls, "__init__", None)
+        if init is None:
+            continue
+        for name, param in inspect.signature(init).parameters.items():
+            if name in skip_init:
+                continue
+            if param.kind in (
+                inspect.Parameter.VAR_POSITIONAL,
+                inspect.Parameter.VAR_KEYWORD,
+            ):
+                continue
+            allowed.add(name)
+    if allowed:
+        dropped = [k for k in method_args if k not in allowed]
+        if dropped:
+            logger.warning(
+                "Dropping trainer.method_args not used by %s: %s",
+                trainer_handler_name,
+                dropped,
+            )
+        method_args = {k: v for k, v in method_args.items() if k in allowed}
+    elif method_args:
+        logger.warning(
+            "Dropping all trainer.method_args for %s: %s",
+            trainer_handler_name,
+            list(method_args),
+        )
+        method_args = {}
     trainer = trainer_cls(
         model=model,
         train_dataset=train_dataset,

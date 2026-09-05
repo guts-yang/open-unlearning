@@ -60,7 +60,8 @@ case "$data_split" in
   *) echo "unknown data_split $data_split"; exit 1 ;;
 esac
 
-task_name="muse_${model}_${data_split}_${trainer}"
+RUN_TAG="${RUN_TAG:-}"
+task_name="muse_${model}_${data_split}_${trainer}${RUN_TAG:+_${RUN_TAG}}"
 ckpt="$SAVES/unlearn/${task_name}"
 log_dir="/root/autodl-tmp/logs"
 mkdir -p "$log_dir" "$ckpt"

@@ -46,7 +46,8 @@ if [[ -z "$ZEPHYR" || ! -d "$ZEPHYR" ]]; then
 fi
 echo "ZEPHYR=$ZEPHYR"
 
-task_name="wmdp_${model}_${data_split}_${trainer}"
+RUN_TAG="${RUN_TAG:-}"
+task_name="wmdp_${model}_${data_split}_${trainer}${RUN_TAG:+_${RUN_TAG}}"
 ckpt="$SAVES/unlearn/${task_name}"
 log_dir="/root/autodl-tmp/logs"
 mkdir -p "$log_dir" "$ckpt"

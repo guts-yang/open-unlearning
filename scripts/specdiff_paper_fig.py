@@ -2,7 +2,7 @@
 """Publication figure for SpecDiff on TOFU forget10 (Llama-3.2-1B-Instruct).
 
 Reported SpecDiff point: λ=1, β=0.1, κ=0.3, τ=0.02, lr=5e-5, 10 epochs
-(3 seeds). Two-panel figure: Agg vs. baselines and privacy–utility Pareto.
+(3 seeds). lr=2e-5 κ=0.3 is overlaid as the zero-mechanism Utility baseline.
 κ=0.5 is shown on the Pareto as an ablation (Priv collapse).
 """
 
@@ -27,7 +27,13 @@ C_PURPLE = "#CC79A7"
 C_GRAY = "#999999"
 C_BLACK = "#222222"
 
+C_SKY = "#56B4E9"
+
 # Self-train best-Agg per method (ou_table3.md 〇). SpecDiff bars use 3-seed mean.
+HYPER_K03 = "lr5e-05_lam1_b0.1_k0.3_t0.02_ep10"
+HYPER_K05 = "lr5e-05_lam1_b0.1_k0.5_t0.02_ep10"
+HYPER_LR2 = "lr2e-05_lam1_b0.1_k0.3_t0.02_ep10"
+
 BASELINES = [
     ("NPO", 0.3120, 0.6165, 0.9700, 0.5122),
     ("SimNPO", 0.3339, 0.5654, 0.8805, 0.5085),
@@ -88,11 +94,20 @@ def setup_style():
     )
 
 
-def panel_agg(ax, spec):
-    names = ["SpecDiff"] + [row[0] for row in BASELINES]
-    agg = [spec["Agg"][0]] + [row[4] for row in BASELINES]
-    err = [spec["Agg"][1]] + [0.0] * len(BASELINES)
-    colors = [C_ORANGE] + [C_GRAY] * len(BASELINES)
+def panel_agg(ax, spec, spec_lr2=None):
+    names = [r"SpecDiff" + "\n" + r"$\kappa{=}0.3$"]
+    agg = [spec["Agg"][0]]
+    err = [spec["Agg"][1]]
+    colors = [C_ORANGE]
+    if spec_lr2 is not None:
+        names.append(r"SpecDiff" + "\n" + r"lr $2{\times}10^{-5}$")
+        agg.append(spec_lr2["Agg"][0])
+        err.append(spec_lr2["Agg"][1])
+        colors.append(C_SKY)
+    names += [row[0] for row in BASELINES]
+    agg += [row[4] for row in BASELINES]
+    err += [0.0] * len(BASELINES)
+    colors += [C_GRAY] * len(BASELINES)
     x = np.arange(len(names))
     ax.bar(
         x,
@@ -122,6 +137,16 @@ def panel_agg(ax, spec):
         color=C_VERM,
         fontweight="bold",
     )
+    if spec_lr2 is not None:
+        ax.annotate(
+            f"{agg[1]:.3f}",
+            (1, agg[1] + err[1] + 0.018),
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            color=C_SKY,
+            fontweight="bold",
+        )
 
 
 def panel_pareto(ax, spec, rows):
@@ -171,7 +196,7 @@ def panel_pareto(ax, spec, rows):
         zorder=4,
     )
     ax.annotate(
-        r"SpecDiff ($\kappa{=}0.3$)",
+        r"SpecDiff ($\kappa{=}0.3$, lr $5{\times}10^{-5}$)",
         (spec["Utility"][0] - 0.04, spec["Priv"][0] + 0.07),
         ha="center",
         fontsize=7.5,
@@ -179,8 +204,43 @@ def panel_pareto(ax, spec, rows):
         fontweight="bold",
     )
 
+    lr2 = group_hyper(rows, HYPER_LR2)
+    if lr2:
+        u, ue = mean_std([r["Utility"] for r in lr2])
+        p, pe = mean_std([r["Priv"] for r in lr2])
+        m, _ = mean_std([r["Mem"] for r in lr2])
+        ax.scatter(
+            u,
+            p,
+            s=40 + 180 * m,
+            color=C_SKY,
+            edgecolors=C_BLACK,
+            linewidths=0.7,
+            zorder=5,
+            marker="D",
+        )
+        ax.errorbar(
+            u,
+            p,
+            xerr=ue,
+            yerr=pe,
+            fmt="none",
+            ecolor=C_SKY,
+            elinewidth=0.8,
+            capsize=2,
+            zorder=4,
+        )
+        ax.annotate(
+            r"lr $2{\times}10^{-5}$ (Utility rescue)",
+            (u - 0.02, p + 0.06),
+            ha="center",
+            fontsize=6.5,
+            color=C_SKY,
+            fontweight="bold",
+        )
+
     # κ=0.5 mean: high Mem, collapsed Priv
-    k5 = group_hyper(rows, "lr5e-05_lam1_b0.1_k0.5_t0.02_ep10")
+    k5 = group_hyper(rows, HYPER_K05)
     if k5:
         u, _ = mean_std([r["Utility"] for r in k5])
         p, _ = mean_std([r["Priv"] for r in k5])
@@ -218,7 +278,17 @@ def panel_pareto(ax, spec, rows):
             markerfacecolor=C_ORANGE,
             markeredgecolor=C_BLACK,
             markersize=10,
-            label=r"SpecDiff $\kappa{=}0.3$ (3 seeds)",
+            label=r"SpecDiff $\kappa{=}0.3$ lr $5{\times}10^{-5}$",
+        ),
+        Line2D(
+            [0],
+            [0],
+            marker="D",
+            color="w",
+            markerfacecolor=C_SKY,
+            markeredgecolor=C_BLACK,
+            markersize=7,
+            label=r"SpecDiff lr $2{\times}10^{-5}$",
         ),
         Line2D(
             [0],
@@ -237,14 +307,21 @@ def panel_pareto(ax, spec, rows):
 def main():
     setup_style()
     rows = load_specdiff_rows()
-    reported = group_hyper(rows, "lr5e-05_lam1_b0.1_k0.3_t0.02_ep10")
+    reported = group_hyper(rows, HYPER_K03)
     spec = {
         key: mean_std([row[key] for row in reported])
         for key in ("Mem", "Priv", "Utility", "Agg")
     }
+    lr2_rows = group_hyper(rows, HYPER_LR2)
+    spec_lr2 = None
+    if lr2_rows:
+        spec_lr2 = {
+            key: mean_std([row[key] for row in lr2_rows])
+            for key in ("Mem", "Priv", "Utility", "Agg")
+        }
 
-    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.05), layout="constrained")
-    panel_agg(axes[0], spec)
+    fig, axes = plt.subplots(1, 2, figsize=(7.6, 3.15), layout="constrained")
+    panel_agg(axes[0], spec, spec_lr2)
     panel_pareto(axes[1], spec, rows)
 
     fig.suptitle(
@@ -264,6 +341,14 @@ def main():
         f"Util={spec['Utility'][0]:.3f}±{spec['Utility'][1]:.3f}  "
         f"Agg={spec['Agg'][0]:.3f}±{spec['Agg'][1]:.3f}"
     )
+    if spec_lr2 is not None:
+        print(
+            "lr=2e-5 n="
+            f"{len(lr2_rows)}  Mem={spec_lr2['Mem'][0]:.3f}±{spec_lr2['Mem'][1]:.3f}  "
+            f"Priv={spec_lr2['Priv'][0]:.3f}±{spec_lr2['Priv'][1]:.3f}  "
+            f"Util={spec_lr2['Utility'][0]:.3f}±{spec_lr2['Utility'][1]:.3f}  "
+            f"Agg={spec_lr2['Agg'][0]:.3f}±{spec_lr2['Agg'][1]:.3f}"
+        )
 
 
 if __name__ == "__main__":

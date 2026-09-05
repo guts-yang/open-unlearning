@@ -37,6 +37,7 @@ METHOD_META = {
     "UNDIAL": ("UNDIAL", "NAACL 2025"),
     "WGA": ("Weighted Gradient Ascent", "仓库扩展方法"),
     "SatImp": ("Saturated Implicit Misfit", "仓库扩展方法"),
+    "SpecDiff": ("Speculative Distribution Difference", "本仓库：有界 TV overlap + retain KL"),
     "Finetuned": ("Finetuned target（未遗忘）", "MUSE 官方对照日志"),
     "Retain": ("Retrain on retain only", "MUSE 官方对照日志"),
 }
@@ -67,6 +68,7 @@ MUSE_ORDER = [
     "UNDIAL",
     "WGA",
     "SatImp",
+    "SpecDiff",
     "Finetuned",
     "Retain",
 ]

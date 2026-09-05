@@ -15,7 +15,9 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 SAVES = Path(os.environ.get("SAVES", "/root/autodl-tmp/saves"))
 RESULTS = ROOT / "results"
-SKIP_TAGS = {"smoke_s0"}
+SKIP_TAGS = {"smoke_s0", "warmup_only_s0"}
+SPECGAP_F_MIN = 0.30
+SPECGAP_R_MAX = 0.15
 
 
 def fmt(value, digits=4):
@@ -30,10 +32,19 @@ def hmean(values):
 
 
 def hyper_key(cfg):
-    return (
+    key = (
         f"lr{cfg['lr']:g}_lam{cfg['lam']:g}_b{cfg['beta']:g}"
         f"_k{cfg['kappa']:g}_t{cfg['tau']:g}_ep{cfg['epochs']:g}"
     )
+    if int(cfg.get("warmup_steps", 1)) != 1:
+        key += f"_wup{int(cfg['warmup_steps'])}"
+    if cfg.get("warmup_kind", "graddiff") != "graddiff":
+        key += f"_wu{cfg['warmup_kind']}"
+    if float(cfg.get("dpo_weight", 0.0)) > 0.0:
+        key += f"_dpo{float(cfg['dpo_weight']):g}"
+    if int(cfg.get("max_steps") or 0) > 0:
+        key += f"_ms{int(cfg['max_steps'])}"
+    return key
 
 
 def load_hparams(ckpt: Path):
@@ -50,6 +61,12 @@ def load_hparams(ckpt: Path):
         "tau": float(method["tau"]),
         "epochs": int(args.get("num_train_epochs", 10)),
         "warmup_steps": int(method.get("warmup_steps", 1)),
+        "warmup_kind": method.get("warmup_kind", "graddiff"),
+        "dpo_weight": float(method.get("dpo_weight", 0.0)),
+        "dpo_beta": float(method.get("dpo_beta", 0.1)),
+        "max_steps": int(args["max_steps"])
+        if args.get("max_steps") not in (None, -1)
+        else 0,
     }
 
 
@@ -211,8 +228,8 @@ def main():
         "",
         "## 超参组对照（跨 seed 均值，按 HM(Mem,Utility) 降序）",
         "",
-        "| 选择 | 超参串 | N | SpecGap_f | SpecGap_r | Δ | d | Mem | Priv | Utility | Agg | HM(Mem,Utility) |",
-        "|:---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| 选择 | 超参串 | N | SpecGap_f | SpecGap_r | Δ | d | Mem | Priv | Utility | Agg | HM(Mem,Utility) | SpecGap门控 |",
+        "|:---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|:---:|",
     ]
 
     ranked = []
@@ -223,6 +240,10 @@ def main():
 
     selected_hyper = ranked[0][1] if ranked else None
     for hm_mu, hyper, group, means, stds in ranked:
+        gate = (
+            means["SpecGap_f"] >= SPECGAP_F_MIN
+            and means["SpecGap_r"] < SPECGAP_R_MAX
+        )
         mark = "**选中**" if hyper == selected_hyper else ""
         lines.append(
             f"| {mark} | `{hyper}` | {len(group)} | "
@@ -235,13 +256,28 @@ def main():
             f"{fmt(means['Utility'])}±{fmt(stds['Utility'])} | "
             f"{fmt(means['Agg'])}±{fmt(stds['Agg'])} | "
             f"{fmt(means['HM_MU'])}±{fmt(stds['HM_MU'])} |"
+            f" {'yes' if gate else 'no'} |"
         )
 
     if selected_hyper:
+        passed = [
+            hyper
+            for _, hyper, _, means, _ in ranked
+            if means["SpecGap_f"] >= SPECGAP_F_MIN
+            and means["SpecGap_r"] < SPECGAP_R_MAX
+        ]
         lines += [
             "",
             f"**选中超参：** `{selected_hyper}`（HM(Mem, Utility) 最高）。",
-            "判据 SpecGap_f≥0.30 且 SpecGap_r<0.10：两组 retain 均约 0.30，**均未过 retain 门控**。",
+            (
+                f"AltSpec/定位门控：SpecGap_f≥{SPECGAP_F_MIN:.2f} 且 "
+                f"SpecGap_r<{SPECGAP_R_MAX:.2f}。"
+                + (
+                    f" 通过：{', '.join('`' + h + '`' for h in passed)}。"
+                    if passed
+                    else " **当前无超参通过 retain 门控**。"
+                )
+            ),
         ]
 
     for _, hyper, group, means, stds in ranked:

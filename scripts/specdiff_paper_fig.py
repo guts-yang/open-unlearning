@@ -28,11 +28,14 @@ C_GRAY = "#999999"
 C_BLACK = "#222222"
 
 C_SKY = "#56B4E9"
+C_GREEN = "#009E73"
 
 # Self-train best-Agg per method (ou_table3.md 〇). SpecDiff bars use 3-seed mean.
 HYPER_K03 = "lr5e-05_lam1_b0.1_k0.3_t0.02_ep10"
 HYPER_K05 = "lr5e-05_lam1_b0.1_k0.5_t0.02_ep10"
 HYPER_LR2 = "lr2e-05_lam1_b0.1_k0.3_t0.02_ep10"
+HYPER_V1 = "lr5e-05_lam1_b0.1_k0.3_t0.02_ep10_wup2_wudpo"
+HYPER_V2 = "lr5e-05_lam1_b0.1_k0.3_t0.02_ep10_dpo0.5"
 
 BASELINES = [
     ("NPO", 0.3120, 0.6165, 0.9700, 0.5122),
@@ -94,20 +97,11 @@ def setup_style():
     )
 
 
-def panel_agg(ax, spec, spec_lr2=None):
-    names = [r"SpecDiff" + "\n" + r"$\kappa{=}0.3$"]
-    agg = [spec["Agg"][0]]
-    err = [spec["Agg"][1]]
-    colors = [C_ORANGE]
-    if spec_lr2 is not None:
-        names.append(r"SpecDiff" + "\n" + r"lr $2{\times}10^{-5}$")
-        agg.append(spec_lr2["Agg"][0])
-        err.append(spec_lr2["Agg"][1])
-        colors.append(C_SKY)
-    names += [row[0] for row in BASELINES]
-    agg += [row[4] for row in BASELINES]
-    err += [0.0] * len(BASELINES)
-    colors += [C_GRAY] * len(BASELINES)
+def panel_agg(ax, bars):
+    names = [item["name"] for item in bars] + [row[0] for row in BASELINES]
+    agg = [item["Agg"][0] for item in bars] + [row[4] for row in BASELINES]
+    err = [item["Agg"][1] for item in bars] + [0.0] * len(BASELINES)
+    colors = [item["color"] for item in bars] + [C_GRAY] * len(BASELINES)
     x = np.arange(len(names))
     ax.bar(
         x,
@@ -128,23 +122,14 @@ def panel_agg(ax, spec, spec_lr2=None):
     ax.set_axisbelow(True)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.annotate(
-        f"{agg[0]:.3f}",
-        (0, agg[0] + err[0] + 0.018),
-        ha="center",
-        va="bottom",
-        fontsize=8,
-        color=C_VERM,
-        fontweight="bold",
-    )
-    if spec_lr2 is not None:
+    for i, item in enumerate(bars):
         ax.annotate(
-            f"{agg[1]:.3f}",
-            (1, agg[1] + err[1] + 0.018),
+            f"{agg[i]:.3f}",
+            (i, agg[i] + err[i] + 0.018),
             ha="center",
             va="bottom",
             fontsize=8,
-            color=C_SKY,
+            color=item["annotate"],
             fontweight="bold",
         )
 
@@ -239,6 +224,53 @@ def panel_pareto(ax, spec, rows):
             fontweight="bold",
         )
 
+    v2 = group_hyper(rows, HYPER_V2)
+    if v2:
+        u, _ = mean_std([r["Utility"] for r in v2])
+        p, _ = mean_std([r["Priv"] for r in v2])
+        m, _ = mean_std([r["Mem"] for r in v2])
+        ax.scatter(
+            u,
+            p,
+            s=40 + 180 * m,
+            color=C_GREEN,
+            edgecolors=C_BLACK,
+            linewidths=0.7,
+            zorder=6,
+            marker="s",
+        )
+        ax.annotate(
+            r"V2 SpecDiff+DPO",
+            (u - 0.02, p + 0.055),
+            ha="center",
+            fontsize=6.5,
+            color=C_GREEN,
+            fontweight="bold",
+        )
+
+    v1 = group_hyper(rows, HYPER_V1)
+    if v1:
+        u, _ = mean_std([r["Utility"] for r in v1])
+        p, _ = mean_std([r["Priv"] for r in v1])
+        m, _ = mean_std([r["Mem"] for r in v1])
+        ax.scatter(
+            u,
+            p,
+            s=40 + 180 * m,
+            color=C_VERM,
+            edgecolors=C_BLACK,
+            linewidths=0.7,
+            zorder=6,
+            marker="^",
+        )
+        ax.annotate(
+            r"V1 DPO warmup",
+            (u - 0.12, p - 0.06),
+            ha="center",
+            fontsize=6.5,
+            color=C_VERM,
+        )
+
     # κ=0.5 mean: high Mem, collapsed Priv
     k5 = group_hyper(rows, HYPER_K05)
     if k5:
@@ -293,6 +325,26 @@ def panel_pareto(ax, spec, rows):
         Line2D(
             [0],
             [0],
+            marker="s",
+            color="w",
+            markerfacecolor=C_GREEN,
+            markeredgecolor=C_BLACK,
+            markersize=7,
+            label=r"V2 SpecDiff+DPO",
+        ),
+        Line2D(
+            [0],
+            [0],
+            marker="^",
+            color="w",
+            markerfacecolor=C_VERM,
+            markeredgecolor=C_BLACK,
+            markersize=7,
+            label=r"V1 DPO warmup",
+        ),
+        Line2D(
+            [0],
+            [0],
             marker="o",
             color="w",
             markerfacecolor=C_GRAY,
@@ -319,13 +371,47 @@ def main():
             key: mean_std([row[key] for row in lr2_rows])
             for key in ("Mem", "Priv", "Utility", "Agg")
         }
+    v2_rows = group_hyper(rows, HYPER_V2)
+    spec_v2 = None
+    if v2_rows:
+        spec_v2 = {
+            key: mean_std([row[key] for row in v2_rows])
+            for key in ("Mem", "Priv", "Utility", "Agg")
+        }
 
-    fig, axes = plt.subplots(1, 2, figsize=(7.6, 3.15), layout="constrained")
-    panel_agg(axes[0], spec, spec_lr2)
+    bars = [
+        {
+            "name": r"SpecDiff" + "\n" + r"$\kappa{=}0.3$",
+            "Agg": spec["Agg"],
+            "color": C_ORANGE,
+            "annotate": C_VERM,
+        }
+    ]
+    if spec_v2 is not None:
+        bars.append(
+            {
+                "name": r"V2" + "\n" + r"+DPO",
+                "Agg": spec_v2["Agg"],
+                "color": C_GREEN,
+                "annotate": C_GREEN,
+            }
+        )
+    if spec_lr2 is not None:
+        bars.append(
+            {
+                "name": r"SpecDiff" + "\n" + r"lr $2{\times}10^{-5}$",
+                "Agg": spec_lr2["Agg"],
+                "color": C_SKY,
+                "annotate": C_SKY,
+            }
+        )
+
+    fig, axes = plt.subplots(1, 2, figsize=(7.8, 3.2), layout="constrained")
+    panel_agg(axes[0], bars)
     panel_pareto(axes[1], spec, rows)
 
     fig.suptitle(
-        "SpecDiff on TOFU forget10  ·  Llama-3.2-1B-Instruct  ·  self-trained",
+        "SpecDiff / AltSpec on TOFU forget10  ·  Llama-3.2-1B-Instruct  ·  self-trained",
         fontsize=10,
     )
     out_png = RESULTS / "specdiff_fig_main.png"
@@ -348,6 +434,14 @@ def main():
             f"Priv={spec_lr2['Priv'][0]:.3f}±{spec_lr2['Priv'][1]:.3f}  "
             f"Util={spec_lr2['Utility'][0]:.3f}±{spec_lr2['Utility'][1]:.3f}  "
             f"Agg={spec_lr2['Agg'][0]:.3f}±{spec_lr2['Agg'][1]:.3f}"
+        )
+    if spec_v2 is not None:
+        print(
+            "V2 n="
+            f"{len(v2_rows)}  Mem={spec_v2['Mem'][0]:.3f}±{spec_v2['Mem'][1]:.3f}  "
+            f"Priv={spec_v2['Priv'][0]:.3f}±{spec_v2['Priv'][1]:.3f}  "
+            f"Util={spec_v2['Utility'][0]:.3f}±{spec_v2['Utility'][1]:.3f}  "
+            f"Agg={spec_v2['Agg'][0]:.3f}±{spec_v2['Agg'][1]:.3f}"
         )
 
 

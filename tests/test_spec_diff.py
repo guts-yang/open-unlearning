@@ -111,6 +111,9 @@ def test_warmup_breaks_symmetry_then_specdiff_has_gradient():
     trainer.kappa = 0.3
     trainer.tau = 0.02
     trainer.warmup_steps = 1
+    trainer.warmup_kind = "graddiff"
+    trainer.dpo_weight = 0.0
+    trainer.dpo_beta = 0.1
     trainer.chunk_size = 3
     trainer.draft_model = draft
     trainer.state = SimpleNamespace(global_step=0)
@@ -149,3 +152,80 @@ def test_kappa_and_tau_clamps_are_flat_after_targets():
     loss.backward()
     assert forget_overlap.grad.item() == 0.0
     assert retain_overlap.grad.item() == 0.0
+
+
+def _make_trainer(**overrides):
+    trainer = object.__new__(SpecDiff)
+    trainer.lam = 1.0
+    trainer.beta = 0.1
+    trainer.kappa = 0.3
+    trainer.tau = 0.02
+    trainer.warmup_steps = 1
+    trainer.warmup_kind = "graddiff"
+    trainer.dpo_weight = 0.0
+    trainer.dpo_beta = 0.1
+    trainer.chunk_size = 3
+    trainer._last_component_log_step = 0
+    trainer.log = lambda *args, **kwargs: None
+    for key, value in overrides.items():
+        setattr(trainer, key, value)
+    return trainer
+
+
+def test_nested_forget_uses_gold_path_for_specdiff():
+    torch.manual_seed(5)
+    model = TinyCausalLM()
+    draft = deepcopy(model)
+    draft.requires_grad_(False)
+    trainer = _make_trainer(draft_model=draft, warmup_steps=1, state=SimpleNamespace(global_step=1))
+    trainer._last_component_log_step = 1
+    gold = _batch([[0, 1, 2]], [[-100, 1, 2]])
+    alt = _batch([[0, 3, 4]], [[-100, 3, 4]])
+    retain = _batch([[3, 4, 5]], [[-100, 4, 5]])
+    loss = trainer.compute_loss(
+        model, {"forget": {"original": gold, "alternate": alt}, "retain": retain}
+    )
+    loss.backward()
+    assert sum(p.grad.abs().sum() for p in model.parameters()) > 0
+
+
+def test_dpo_warmup_requires_alternate_and_has_gradient():
+    torch.manual_seed(6)
+    model = TinyCausalLM()
+    draft = deepcopy(model)
+    draft.requires_grad_(False)
+    trainer = _make_trainer(
+        draft_model=draft,
+        warmup_kind="dpo",
+        state=SimpleNamespace(global_step=0),
+    )
+    gold = _batch([[0, 1, 2]], [[-100, 1, 2]])
+    retain = _batch([[3, 4, 5]], [[-100, 4, 5]])
+    try:
+        trainer.compute_loss(model, {"forget": gold, "retain": retain})
+        raise AssertionError("expected missing-alternate error")
+    except ValueError as error:
+        assert "forget.alternate" in str(error)
+    alt = _batch([[0, 3, 4]], [[-100, 3, 4]])
+    loss = trainer.compute_loss(
+        model, {"forget": {"original": gold, "alternate": alt}, "retain": retain}
+    )
+    loss.backward()
+    assert sum(p.grad.abs().sum() for p in model.parameters()) > 0
+
+
+def test_dpo_weight_requires_alternate():
+    trainer = _make_trainer(
+        dpo_weight=0.5,
+        warmup_steps=1,
+        state=SimpleNamespace(global_step=1),
+        draft_model=TinyCausalLM(),
+    )
+    trainer.draft_model.requires_grad_(False)
+    gold = _batch([[0, 1, 2]], [[-100, 1, 2]])
+    retain = _batch([[3, 4, 5]], [[-100, 4, 5]])
+    try:
+        trainer.compute_loss(TinyCausalLM(), {"forget": gold, "retain": retain})
+        raise AssertionError("expected missing-alternate error")
+    except ValueError as error:
+        assert "dpo_weight" in str(error)

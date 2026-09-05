@@ -11,4 +11,7 @@ method_args:
   kappa: 0.3
   tau: 0.02
   warmup_steps: 1
+  warmup_kind: graddiff
+  dpo_weight: 0.0
+  dpo_beta: 0.1
   chunk_size: 8192

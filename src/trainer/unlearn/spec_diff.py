@@ -4,7 +4,7 @@ import torch
 from transformers import AutoModelForCausalLM
 
 from trainer.unlearn.base import UnlearnTrainer
-from trainer.utils import compute_batch_nll, compute_specdiff_statistics
+from trainer.utils import compute_batch_nll, compute_dpo_loss, compute_specdiff_statistics
 
 
 logger = logging.getLogger(__name__)
@@ -22,6 +22,9 @@ class SpecDiff(UnlearnTrainer):
         tau=0.02,
         warmup_steps=1,
         chunk_size=8192,
+        warmup_kind="graddiff",
+        dpo_weight=0.0,
+        dpo_beta=0.1,
         *args,
         **kwargs,
     ):
@@ -38,6 +41,10 @@ class SpecDiff(UnlearnTrainer):
             )
         if chunk_size <= 0:
             raise ValueError("chunk_size must be positive")
+        if warmup_kind not in {"graddiff", "dpo"}:
+            raise ValueError("warmup_kind must be 'graddiff' or 'dpo'")
+        if dpo_weight < 0.0 or dpo_beta <= 0.0:
+            raise ValueError("dpo_weight must be >= 0 and dpo_beta must be > 0")
 
         self.lam = float(lam)
         self.beta = float(beta)
@@ -45,6 +52,9 @@ class SpecDiff(UnlearnTrainer):
         self.tau = float(tau)
         self.warmup_steps = int(warmup_steps)
         self.chunk_size = int(chunk_size)
+        self.warmup_kind = warmup_kind
+        self.dpo_weight = float(dpo_weight)
+        self.dpo_beta = float(dpo_beta)
         self._last_component_log_step = None
 
         draft_model_path = draft_model_path or getattr(
@@ -117,6 +127,32 @@ class SpecDiff(UnlearnTrainer):
         }
 
     @staticmethod
+    def _forget_branches(forget):
+        """Return (gold, alternate_or_none) for plain or AltPO nested forget batches."""
+        if "input_ids" in forget:
+            return forget, None
+        if "original" in forget:
+            return forget["original"], forget.get("alternate")
+        raise ValueError("forget batch must contain input_ids or original/alternate")
+
+    def _require_alternate(self, alternate, reason):
+        if alternate is None:
+            raise ValueError(
+                f"{reason} requires forget.alternate "
+                "(QAwithAlternateDataset / AltPO jsonl)"
+            )
+
+    def _dpo_term(self, model, gold_inputs, alternate_inputs):
+        dpo_loss, (win_outputs, lose_outputs) = compute_dpo_loss(
+            model=model,
+            ref_model=self.draft_model,
+            win_inputs=alternate_inputs,
+            lose_inputs=gold_inputs,
+            beta=self.dpo_beta,
+        )
+        return dpo_loss, lose_outputs or win_outputs
+
+    @staticmethod
     def _mean_sequence_nll(model, inputs):
         sequence_nll, outputs = compute_batch_nll(model, inputs)
         token_counts = inputs["labels"][..., 1:].ne(-100).sum(dim=-1)
@@ -139,22 +175,38 @@ class SpecDiff(UnlearnTrainer):
     def compute_loss(
         self, model, inputs, return_outputs=False, num_items_in_batch=None
     ):
-        forget_inputs = self._model_inputs(inputs["forget"])
+        gold_raw, alternate_raw = self._forget_branches(inputs["forget"])
+        forget_inputs = self._model_inputs(gold_raw)
         retain_inputs = self._model_inputs(inputs["retain"])
+        alternate_inputs = (
+            self._model_inputs(alternate_raw) if alternate_raw is not None else None
+        )
 
         # At q == draft, sum(min(p, q)) and KL both have zero gradient.
-        # One optimizer step of GradDiff opens a semantically directed gap.
+        # Warmup opens a semantically directed gap (GradDiff or AltPO DPO).
         if self.state.global_step < self.warmup_steps:
-            forget_nll, forget_outputs = self._mean_sequence_nll(
-                model, forget_inputs
-            )
             retain_nll, _ = self._mean_sequence_nll(model, retain_inputs)
-            loss = -forget_nll + self.lam * retain_nll
-            self._log_components(
-                warmup_loss=loss,
-                warmup_forget_nll=forget_nll,
-                warmup_retain_nll=retain_nll,
-            )
+            if self.warmup_kind == "dpo":
+                self._require_alternate(alternate_inputs, "warmup_kind=dpo")
+                dpo_loss, forget_outputs = self._dpo_term(
+                    model, forget_inputs, alternate_inputs
+                )
+                loss = dpo_loss + self.lam * retain_nll
+                self._log_components(
+                    warmup_loss=loss,
+                    warmup_dpo=dpo_loss,
+                    warmup_retain_nll=retain_nll,
+                )
+            else:
+                forget_nll, forget_outputs = self._mean_sequence_nll(
+                    model, forget_inputs
+                )
+                loss = -forget_nll + self.lam * retain_nll
+                self._log_components(
+                    warmup_loss=loss,
+                    warmup_forget_nll=forget_nll,
+                    warmup_retain_nll=retain_nll,
+                )
             return (loss, forget_outputs) if return_outputs else loss
 
         forget_forward = {
@@ -188,12 +240,19 @@ class SpecDiff(UnlearnTrainer):
         retain_loss = (1.0 - retain_overlap).clamp(min=self.tau).mean()
         kl_loss = retain_kl.mean()
         loss = forget_loss + self.lam * retain_loss + self.beta * kl_loss
-        self._log_components(
-            loss=loss,
-            forget_overlap=forget_overlap.mean(),
-            retain_overlap=retain_overlap.mean(),
-            forget_loss=forget_loss,
-            retain_loss=retain_loss,
-            retain_kl=kl_loss,
-        )
+        log_components = {
+            "loss": loss,
+            "forget_overlap": forget_overlap.mean(),
+            "retain_overlap": retain_overlap.mean(),
+            "forget_loss": forget_loss,
+            "retain_loss": retain_loss,
+            "retain_kl": kl_loss,
+        }
+        if self.dpo_weight > 0.0:
+            self._require_alternate(alternate_inputs, "dpo_weight>0")
+            dpo_loss, _ = self._dpo_term(model, forget_inputs, alternate_inputs)
+            loss = loss + self.dpo_weight * dpo_loss
+            log_components["loss"] = loss
+            log_components["dpo_loss"] = dpo_loss
+        self._log_components(**log_components)
         return (loss, forget_outputs) if return_outputs else loss

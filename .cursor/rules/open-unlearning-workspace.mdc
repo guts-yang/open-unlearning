@@ -5,7 +5,26 @@ alwaysApply: true
 
 # OpenUnlearning 顶级路径约束
 
-未明确说「合入主线」前：把官方树当只读实验平台。新代码、脚本、配置、笔记、运行产物一律进 `workspace/`。修官方 bug 可改对应文件，须标明这是 bugfix 而非新实验。
+未明确说「合入主线」前：把官方树当只读实验平台。新代码、脚本、配置、笔记一律进 `workspace/`。权重、HF 缓存、ckpt、评测 dump、hydra 日志等大文件**只写数据盘** `/root/autodl-tmp`，禁止落到系统盘 `/`、仓库根或 `~/.cache`。修官方 bug 可改对应文件，须标明这是 bugfix 而非新实验。
+
+## 本机环境（AutoDL）
+
+| 项 | 事实 | 约束 |
+|---|---|---|
+| 系统盘 `/` | overlay **30G**，仓库在此 | 只放代码；禁止下载权重/数据集 |
+| 数据盘 | `/root/autodl-tmp` **300G** | HF 缓存、saves、logs、venv |
+| 仓库 | **唯一副本** `/usr/local/open-unlearning` | 不要在数据盘再克隆一份 |
+| Python | `/root/autodl-tmp/envs/unlearning` | 不要用 `/root/miniconda3` 的 base |
+| HF | `source /root/autodl-tmp/env_hf.sh` | 镜像 + `HF_HOME` + token + OMP |
+
+每个新 shell 先：
+
+```bash
+source /root/autodl-tmp/env_hf.sh
+source /root/autodl-tmp/envs/unlearning/bin/activate
+```
+
+`env_hf.sh` 已钉：`HF_ENDPOINT=https://hf-mirror.com`（直连会 SSL reset）、`HF_HOME=/root/autodl-tmp/huggingface`、`HUGGINGFACE_HUB_CACHE=$HF_HOME/hub`（必须是 `hub` 子目录，否则绕开已有缓存）。未 source 时 datasets/Hub 会写到 `~/.cache/huggingface`（系统盘）。不要再设 `TRANSFORMERS_CACHE`。开机后需挂卡才有 GPU。
 
 ## 官方路径（合入前勿往里塞实验文件）
 
@@ -16,7 +35,7 @@ alwaysApply: true
 | Hydra | `configs/` |
 | 官方基线脚本 | `scripts/`（如 `tofu_unlearn.sh`） |
 | 社区调参包 | `community/methods/<Name>/`（README + `run.sh`，不放第二份 trainer） |
-| 框架默认输出 | `saves/${mode}/${task_name}` — **本地实验不用** |
+| 框架默认输出 | `saves/${mode}/${task_name}` — **本地实验不用**；官方脚本产物覆盖为 `/root/autodl-tmp/saves/...`，不要在仓库内创建 `saves/` |
 
 不要改 `configs/paths/default.yaml` 把全局输出改走，以免官方脚本失效。
 
@@ -28,12 +47,21 @@ workspace/
   src/       # 未合入的 trainer / metric
   configs/   # 实验 Hydra overlay
   notes/     # 实验记录
-  saves/     # ckpt、EVAL/SUMMARY、hydra log；不提交
+  saves/     # 逻辑路径；必须是数据盘软链，不提交
+```
+
+`workspace/saves` 必须指向数据盘（没有就建），这样插件守卫仍要求 `paths.output_dir` 在 `workspace/saves/` 下，实际字节不占系统盘：
+
+```bash
+mkdir -p /root/autodl-tmp/saves/workspace
+ln -sfn /root/autodl-tmp/saves/workspace /usr/local/open-unlearning/workspace/saves
 ```
 
 本地训练必须覆盖输出目录，例如：
 
 ```bash
+source /root/autodl-tmp/env_hf.sh
+source /root/autodl-tmp/envs/unlearning/bin/activate
 python src/train.py --config-name=unlearn.yaml experiment=unlearn/tofu/default \
   task_name=MY_RUN paths.output_dir=workspace/saves/unlearn/MY_RUN
 ```
@@ -46,14 +74,17 @@ python src/train.py --config-name=unlearn.yaml experiment=unlearn/tofu/default \
 - 在仓库根、`scripts/`、`community/`、`src/` 增加顺手的 `.sh` / notebook / 一次性分析脚本
 - 复制官方方法再改一份并行实现；先复用已有 trainer
 - 未合入就把 handler 注册进 `src/trainer/__init__.py` 等官方 registry
+- 未 source `env_hf.sh` 就下载或训练；把缓存/ckpt 写到 `~/.cache` 或系统盘
+- 删大数据盘文件后只 `du -sh /root/autodl-tmp/*`（看不到 `.Trash-0`，空间未真正释放）
 
 ```text
 ❌ scripts/my_sweep.sh
 ❌ community/methods/SpecDiff/spec_diff.py   # trainer 应先放 workspace/src
-❌ saves/unlearn/MY_RUN                     # 本地结果
+❌ saves/unlearn/MY_RUN                     # 仓库根 saves；本机也不要建
+❌ ~/.cache/huggingface                     # 未 source 时的默认缓存
 ✅ workspace/scripts/my_sweep.sh
 ✅ workspace/src/trainer/spec_diff.py
-✅ workspace/saves/unlearn/MY_RUN
+✅ workspace/saves/unlearn/MY_RUN           # 软链 → /root/autodl-tmp/saves/workspace
 ```
 
 ## 合入主线（仅当用户明确要求）

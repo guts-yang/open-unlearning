@@ -1,1 +1,1 @@
-代码与单测完成后的远程清单见 `workspace/docs/`。本文件在训练结束后再写实测对照。
+准备盘点见 `prep_status.md`。训练结束后再写实测对照。远程步骤见 `workspace/docs/`。

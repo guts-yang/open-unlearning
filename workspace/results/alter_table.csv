@@ -1,3 +1,0 @@
-run,model,wmdp_bio,wmdp_cyber,mmlu,note,status
-未复现,zephyr-7b-beta,,,,推定实现；训练未跑,未复现
-未复现,llama3-8b,,,,论文锚点 Bio 24.4 / Cyber 25.6 / MMLU 57.8；训练未跑,未复现

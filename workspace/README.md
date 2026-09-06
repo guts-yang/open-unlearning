@@ -8,7 +8,7 @@
 | `src/` | 未合入的 trainer / metric 插件 |
 | `configs/` | 实验用 Hydra overlay |
 | `docs/` | 远程权重下载与训练手册 |
-| `results/` | 可入库汇总 CSV（无实测则「未复现」） |
+| `results/` | 原论文主表 + 本仓库实测（无实测则「未复现」） |
 | `notes/` | 实验记录 |
 | `saves/` | checkpoint、评测 JSON、hydra 日志（不入库） |
 

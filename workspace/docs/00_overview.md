@@ -26,5 +26,5 @@
 
 - 只用 `workspace/scripts/train.py` 和 `eval.py`（会注册插件并拒绝仓库根 `saves/`）。
 - 必须带 `paths.output_dir=workspace/saves/unlearn/<task>`（实验 YAML 已写默认值）。
-- 汇总表：`workspace/results/*.csv`。原始 JSON：`workspace/saves/`。
-- 缺跑格子写「未复现」，禁止填论文数字。
+- 汇总表：`workspace/results/*.md`（先原论文表，再实测）。原始 JSON：`workspace/saves/`。
+- 缺跑格子写「未复现」，禁止把论文数字填进实测列。

@@ -18,4 +18,4 @@ python workspace/scripts/train.py experiment=unlearn/blade_tofu01_smoke \
   paths.output_dir=workspace/saves/unlearn/blade_tofu01_smoke
 ```
 
-训练必须覆盖 `paths.output_dir` 到 `workspace/saves/`。手册从 `workspace/docs/00_overview.md` 读起。
+训练必须覆盖 `paths.output_dir` 到 `workspace/saves/`。手册从 `workspace/docs/00_overview.md` 读起（BLADE → GROM → BalDRO → ALTER）。

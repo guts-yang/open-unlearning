@@ -13,10 +13,12 @@ def _load_plugin_trainers() -> list[Type]:
     from open_unlearning_plugins.baldro.simnpo import DrSimNPO, GroupSimNPO
     from open_unlearning_plugins.blade.lora_bial import LoRABiAL
     from open_unlearning_plugins.blade.lora_bial_adaptive import LoRABiALAdaptive
+    from open_unlearning_plugins.grom.trainer import GROM
 
     return [
         LoRABiAL,
         LoRABiALAdaptive,
+        GROM,
         DrNPO,
         GroupNPO,
         DrSimNPO,

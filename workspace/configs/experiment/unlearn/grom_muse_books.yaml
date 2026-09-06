@@ -1,0 +1,62 @@
+# @package _global_
+# GROM MUSE Books  yaml 基座 muse-bench/MUSE-Books_target（勿用 README 的 ICLM-7B 口误）
+
+defaults:
+  - override /model: Llama-2-7b-hf
+  - override /trainer: GROM
+  - override /data: unlearn
+  - override /data/datasets@data.forget: MUSE_forget
+  - override /data/datasets@data.retain: MUSE_retain
+  - override /eval: muse
+
+data_split: Books
+forget_split: forget
+retain_split: retain1
+retain_logs_path: null
+
+model:
+  model_args:
+    pretrained_model_name_or_path: muse-bench/MUSE-${data_split}_target
+
+eval:
+  muse:
+    data_split: ${data_split}
+    retain_logs_path: ${retain_logs_path}
+    overwrite: true
+
+data:
+  anchor: forget
+  forget:
+    MUSE_forget:
+      args:
+        hf_args:
+          split: ${forget_split}
+          path: muse-bench/MUSE-${data_split}
+  retain:
+    MUSE_retain:
+      args:
+        hf_args:
+          path: muse-bench/MUSE-${data_split}
+          split: ${retain_split}
+
+trainer:
+  method_args:
+    name: muse_books
+    kind: corpus
+    forget_jsonl: data/muse_books/forget_train.jsonl
+    retain_jsonl: data/muse_books/retain_train.jsonl
+    n_docs: 2000
+    win: 400
+    layers: [28, 29, 30, 31]
+    target: suppress
+    strength: 350
+    w_r: 80
+    rho: 0.03
+    grom_seed: 0
+  args:
+    seed: 0
+    do_eval: false
+
+task_name: grom_muse_books
+paths:
+  output_dir: workspace/saves/unlearn/${task_name}

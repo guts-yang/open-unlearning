@@ -29,7 +29,8 @@ PYTHONPATH=src:workspace/src python -m pytest workspace/tests -q
 |------|----|
 | BLADE TOFU 1B | `open-unlearning/tofu_Llama-3.2-1B-Instruct_full` |
 | BLADE TOFU 3B | `open-unlearning/tofu_Llama-3.2-3B-Instruct_full` |
-| BalDRO TOFU 7B | `open-unlearning/tofu_Llama-2-7b-chat-hf_full` |
+| GROM / BalDRO TOFU 7B | `open-unlearning/tofu_Llama-2-7b-chat-hf_full` |
+| GROM WMDP | `meta-llama/Meta-Llama-3-8B-Instruct` |
 | MUSE Books/News 目标 | `muse-bench/MUSE-Books_target`, `muse-bench/MUSE-News_target` |
 | ALTER Zephyr | `HuggingFaceH4/zephyr-7b-beta` |
 | ALTER Llama3-8B | 论文未钉 ID；候选 `meta-llama/Meta-Llama-3-8B` 或 Instruct，写入 notes |
@@ -47,7 +48,8 @@ python setup_data.py --eval_logs
 
 - TOFU：`locuslab/TOFU`（HF，公开）
 - MUSE：`muse-bench/MUSE-{News,Books}`
-- WMDP 评测：`cais/wmdp`；训练语料 `python setup_data.py --wmdp`（Bio forget 可能仍需申请）
+- WMDP 评测：`cais/wmdp`；训练语料 `python setup_data.py --wmdp`（**GROM/ALTER 的 Bio forget jsonl 可能仍需申请**）
+- GROM MUSE 窗口语料：官方期望 `data/muse_{news,books}/{forget,retain}_train.jsonl`
 
 ## 路径守卫冒烟（下载后、全量前）
 

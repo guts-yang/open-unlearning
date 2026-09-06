@@ -19,6 +19,7 @@ def test_plugin_handlers_register_without_hf_download():
         "DrSatImp",
         "GroupSatImp",
         "ALTER",
+        "GROM",
     ):
         assert name in names
         assert name in TRAINER_REGISTRY

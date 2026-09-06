@@ -1,0 +1,65 @@
+# @package _global_
+# GROM TOFU-5%  LLaMA-2-7B-Chat  layers 26-31  pin Batorskq/GROM@6dd9591
+
+defaults:
+  - override /model: Llama-2-7b-chat-hf
+  - override /trainer: GROM
+  - override /data: unlearn
+  - override /data/datasets@data.forget: TOFU_QA_forget
+  - override /data/datasets@data.retain: TOFU_QA_retain
+  - override /eval: tofu
+
+model:
+  model_args:
+    pretrained_model_name_or_path: open-unlearning/tofu_Llama-2-7b-chat-hf_full
+
+forget_split: forget05
+retain_split: retain95
+holdout_split: holdout05
+retain_logs_path: null
+question_key: "question"
+
+eval:
+  tofu:
+    forget_split: ${forget_split}
+    holdout_split: ${holdout_split}
+    retain_logs_path: ${retain_logs_path}
+    overwrite: true
+    question_key: ${question_key}
+
+data:
+  anchor: forget
+  forget:
+    TOFU_QA_forget:
+      args:
+        hf_args:
+          name: ${forget_split}
+  retain:
+    TOFU_QA_retain:
+      args:
+        hf_args:
+          name: ${retain_split}
+
+trainer:
+  method_args:
+    name: tofu5
+    kind: tofu
+    template: llama2
+    forget_split: forget05
+    retain_splits:
+      - retain95
+      - real_authors_perturbed
+      - world_facts_perturbed
+    layers: [26, 27, 28, 29, 30, 31]
+    target: suppress
+    strength: 1000
+    w_r: 300
+    rho: 0.03
+    grom_seed: 0
+  args:
+    seed: 0
+    do_eval: false
+
+task_name: grom_tofu05
+paths:
+  output_dir: workspace/saves/unlearn/${task_name}

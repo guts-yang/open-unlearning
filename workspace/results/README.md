@@ -5,6 +5,7 @@
 | 文件 | 论文 | PDF |
 | --- | --- | --- |
 | [blade_table.md](blade_table.md) | BLADE（arXiv:2608.22557） | 【172】BLADE- Bilevel Low-rank Augmented-Lagrangian Erasure for LLM Unlearning.pdf |
+| [grom_table.md](grom_table.md) | GROM（arXiv:2608.05783） | 见 arXiv:2608.05783；与 EvoMU 不是同一方法 |
 | [baldro_table.md](baldro_table.md) | BalDRO（WWW 2026, arXiv:2601.09172） | 【168】BalDRO-A Distributionally Robust Optimization based Framework for Large Language Model Unlearning.pdf |
 | [alter_table.md](alter_table.md) | ALTER（AAAI 2026, arXiv:2603.01792；**原文无完整复现配置**） | 【173】ALTER- Asymmetric LoRA for Token-Entropy-Guided Unlearning of LLMs.pdf |
 

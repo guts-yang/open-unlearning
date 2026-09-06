@@ -1,0 +1,62 @@
+# @package _global_
+# GROM MUSE News  layers 28-31
+
+defaults:
+  - override /model: Llama-2-7b-hf
+  - override /trainer: GROM
+  - override /data: unlearn
+  - override /data/datasets@data.forget: MUSE_forget
+  - override /data/datasets@data.retain: MUSE_retain
+  - override /eval: muse
+
+data_split: News
+forget_split: forget
+retain_split: retain1
+retain_logs_path: null
+
+model:
+  model_args:
+    pretrained_model_name_or_path: muse-bench/MUSE-${data_split}_target
+
+eval:
+  muse:
+    data_split: ${data_split}
+    retain_logs_path: ${retain_logs_path}
+    overwrite: true
+
+data:
+  anchor: forget
+  forget:
+    MUSE_forget:
+      args:
+        hf_args:
+          split: ${forget_split}
+          path: muse-bench/MUSE-${data_split}
+  retain:
+    MUSE_retain:
+      args:
+        hf_args:
+          path: muse-bench/MUSE-${data_split}
+          split: ${retain_split}
+
+trainer:
+  method_args:
+    name: muse_news
+    kind: corpus
+    forget_jsonl: data/muse_news/forget_train.jsonl
+    retain_jsonl: data/muse_news/retain_train.jsonl
+    n_docs: 2000
+    win: 400
+    layers: [28, 29, 30, 31]
+    target: suppress
+    strength: 370
+    w_r: 10
+    rho: 0.03
+    grom_seed: 0
+  args:
+    seed: 0
+    do_eval: false
+
+task_name: grom_muse_news
+paths:
+  output_dir: workspace/saves/unlearn/${task_name}

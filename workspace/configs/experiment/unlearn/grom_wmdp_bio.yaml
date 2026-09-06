@@ -1,0 +1,61 @@
+# @package _global_
+# GROM WMDP-Bio  Meta-Llama-3-8B-Instruct  layer 8  rmu
+# forget jsonl 门控；本 fork 评测用 experiment=eval/wmdp/default data_split=bio
+# （没有 GROM README 里的 eval/wmdp/bio_l3）
+
+defaults:
+  - override /model: Llama-3.1-8B-Instruct
+  - override /trainer: GROM
+  - override /data: unlearn
+  - override /data/datasets@data.forget: WMDP_forget
+  - override /data/datasets@data.retain: WMDP_retain
+  - override /eval: lm_eval
+
+data_split: bio
+
+model:
+  model_args:
+    pretrained_model_name_or_path: meta-llama/Meta-Llama-3-8B-Instruct
+  tokenizer_args:
+    pretrained_model_name_or_path: meta-llama/Meta-Llama-3-8B-Instruct
+
+data:
+  anchor: forget
+  forget:
+    WMDP_forget:
+      args:
+        hf_args:
+          data_files: data/wmdp/wmdp-corpora/${data_split}-forget-corpus.jsonl
+  retain:
+    WMDP_retain:
+      args:
+        hf_args:
+          data_files: data/wmdp/wikitext.jsonl
+
+eval:
+  lm_eval:
+    tasks:
+      - wmdp_${data_split}
+      - mmlu
+
+trainer:
+  method_args:
+    name: wmdp
+    kind: corpus
+    forget_jsonl: data/wmdp/bio-forget-corpus.jsonl
+    retain_jsonl: data/wmdp/wikitext.jsonl
+    n_docs: 2000
+    win: 400
+    layers: [8]
+    target: rmu
+    strength: 45
+    w_r: 1000
+    rho: 0.03
+    grom_seed: 0
+  args:
+    seed: 0
+    do_eval: false
+
+task_name: grom_wmdp_bio
+paths:
+  output_dir: workspace/saves/unlearn/${task_name}

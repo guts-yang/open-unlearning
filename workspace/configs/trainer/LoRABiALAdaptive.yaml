@@ -1,0 +1,8 @@
+defaults:
+  - LoRABiAL
+
+handler: LoRABiALAdaptive
+method_args:
+  calibration_frac: 0.10
+  conv_patience: 8
+  ema_alpha: 0.15

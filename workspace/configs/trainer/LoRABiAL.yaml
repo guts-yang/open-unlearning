@@ -1,0 +1,51 @@
+defaults:
+  - finetune
+
+handler: LoRABiAL
+method_args:
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.0
+  lora_target_modules: null
+  T: -1
+  K: 3
+  eta_theta: 3e-5
+  eta_in: 2e-4
+  epsilon_multiplier: 1.15
+  rho: 0.1
+  lambda_init: 1.0
+  lambda_max: 0.0
+  lambda_min: 0.1
+  dual_decay_factor: 0.1
+  forget_loss_type: clamped_entropy
+  npo_beta: 4.0
+  clamped_entropy_tau: 0.7
+  checkpoint_every_epoch: false
+  checkpoint_every_n_steps: 0
+  eval_at_steps: null
+  lora_init_path: null
+  save_lora_only: false
+  gradient_accumulation_steps: 8
+  inner_accumulation_steps: 0
+  inner_warmup_steps: 0
+  max_grad_norm: 1.0
+
+args:
+  per_device_train_batch_size: 2
+  per_device_eval_batch_size: 16
+  gradient_accumulation_steps: 8
+  bf16: True
+  bf16_full_eval: True
+  logging_steps: 2
+  output_dir: ${paths.output_dir}
+  logging_dir: ${trainer.args.output_dir}/logs
+  report_to: tensorboard
+  ddp_find_unused_parameters: None
+  gradient_checkpointing: True
+  save_strategy: 'no'
+  save_only_model: True
+  eval_strategy: 'no'
+  do_train: True
+  do_eval: False
+  eval_on_start: False
+  seed: 42

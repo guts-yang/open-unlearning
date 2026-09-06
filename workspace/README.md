@@ -1,13 +1,21 @@
 # workspace
 
-本仓库的**本地实验区**。官方 `src/`、`configs/`、`scripts/`、`community/` 在未明确「合入主线」前不要混入实验文件。约束见 `.cursor/rules/open-unlearning-workspace.mdc`。
+本仓库的**本地实验区**。官方 `src/`、`configs/`、`scripts/`、`community/`、`docs/` 在未明确「合入主线」前不要混入实验文件。约束见 `.cursor/rules/open-unlearning-workspace.mdc`。
 
 | 目录 | 用途 |
 |------|------|
-| `scripts/` | 本地跑数、sweep、汇总 |
-| `src/` | 未合入的 trainer / metric |
+| `scripts/` | 训练/评测入口、sweep、汇总 |
+| `src/` | 未合入的 trainer / metric 插件 |
 | `configs/` | 实验用 Hydra overlay |
+| `docs/` | 远程权重下载与训练手册 |
+| `results/` | 可入库汇总 CSV（无实测则「未复现」） |
 | `notes/` | 实验记录 |
 | `saves/` | checkpoint、评测 JSON、hydra 日志（不入库） |
 
-训练/评测请覆盖输出路径，例如 `paths.output_dir=workspace/saves/unlearn/<task_name>`，不要写到仓库根 `saves/`。
+```bash
+PYTHONPATH=src:workspace/src python -m pytest workspace/tests -q
+python workspace/scripts/train.py experiment=unlearn/blade_tofu01_smoke \
+  paths.output_dir=workspace/saves/unlearn/blade_tofu01_smoke
+```
+
+训练必须覆盖 `paths.output_dir` 到 `workspace/saves/`。手册从 `workspace/docs/00_overview.md` 读起。

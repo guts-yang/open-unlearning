@@ -14,7 +14,7 @@
 
 - **BLADE 论文表**：TOFU `HM = hmean(MU, 1−Prob, 1−RG)`。标准 Forget Quality（KS p 值）只作旁注。
 - **BalDRO 论文表**：标准 TOFU FQ + MU。
-- **ALTER**：WMDP-Bio/Cyber accuracy ↓ + MMLU ↑。实现为推定，不能写成「官方数字复现」。
+- **ALTER**：WMDP-Bio/Cyber accuracy ↓ + MMLU ↑。原文无完整复现配置，实现为推定，不能写成「官方数字 / 论文配置复现」。
 
 ## 本机已完成 / 远程待做
 

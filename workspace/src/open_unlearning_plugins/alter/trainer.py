@@ -39,7 +39,7 @@ class ALTER(UnlearnTrainer):
         lambda_entropy: float = 0.01,
         eta_a: float = 1e-5,
         eta_b: float = 1e-3,
-        reconstruction_note: str = "paper-appendix-missing",
+        reconstruction_note: str = "原文无完整复现配置",
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -59,8 +59,8 @@ class ALTER(UnlearnTrainer):
         self.reconstruction_note = reconstruction_note
         self._wrapped = False
         logger.warning(
-            "ALTER is a non-official reconstruction (%s). "
-            "q=%s experts=%s targets=%s",
+            "ALTER is a non-official reconstruction; paper ships no runnable config (%s). "
+            "Do not report as paper-config reproduction. q=%s experts=%s targets=%s",
             reconstruction_note,
             tsallis_q,
             n_forget_experts,

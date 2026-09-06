@@ -16,13 +16,13 @@ ALTER_PLACEHOLDERS = [
     {
         "run": "未复现",
         "model": "zephyr-7b-beta",
-        "note": "推定实现；训练未跑",
+        "note": "原文无完整复现配置；推定实现；论文 Cyber 24.0 / MMLU 56.4 / Bio 24.4；训练未跑",
         "status": "未复现",
     },
     {
         "run": "未复现",
         "model": "llama3-8b",
-        "note": "论文锚点 Bio 24.4 / Cyber 25.6 / MMLU 57.8；训练未跑",
+        "note": "原文无完整复现配置；推定实现；论文 Bio 24.4 / Cyber 25.6 / MMLU 57.8；训练未跑",
         "status": "未复现",
     },
 ]
@@ -63,14 +63,19 @@ def _apply_measured(rows: list[dict], model: str, measured: dict, run: str) -> N
             for key in ("wmdp_bio", "wmdp_cyber", "mmlu"):
                 if measured.get(key) not in (None, ""):
                     row[key] = measured[key]
-            row["status"] = "实测"
+            row["status"] = "实测（非论文配置复现）"
+            if "原文无完整复现配置" not in str(row.get("note", "")):
+                row["note"] = (
+                    "原文无完整复现配置；" + str(row.get("note") or "")
+                ).rstrip("；")
             return
     extra = {h: "" for h in ALTER_HEADERS}
     extra.update(
         {
             "run": run,
             "model": model or "",
-            "status": "实测",
+            "status": "实测（非论文配置复现）",
+            "note": "原文无完整复现配置",
             **{k: measured.get(k, "") for k in ("wmdp_bio", "wmdp_cyber", "mmlu")},
         }
     )

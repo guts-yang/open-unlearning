@@ -1,5 +1,5 @@
 # @package _global_
-# ALTER reconstruction on WMDP-Cyber (public forget corpus). Not official code.
+# ALTER reconstruction on WMDP-Cyber. Paper does not ship a runnable config; not official code.
 
 defaults:
   - override /model: zephyr-7b-beta

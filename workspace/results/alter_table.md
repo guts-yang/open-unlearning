@@ -1,14 +1,15 @@
 # ALTER
 
-论文：*ALTER: Asymmetric LoRA for Token-Entropy-Guided Unlearning of LLMs*（AAAI 2026，arXiv:2603.01792v1）。原文：[workspace/docs/papers/【173】ALTER- Asymmetric LoRA for Token-Entropy-Guided Unlearning of LLMs.pdf](../docs/papers/【173】ALTER- Asymmetric LoRA for Token-Entropy-Guided Unlearning of LLMs.pdf)。GitHub `MastrOrigami/ALTER` 仅空 README（`@f664526`）。本仓库实现是**按正文重建**，不能写成「官方代码数字复现」。
+论文：*ALTER: Asymmetric LoRA for Token-Entropy-Guided Unlearning of LLMs*（AAAI 2026，arXiv:2603.01792v1）。原文：[workspace/docs/papers/【173】ALTER- Asymmetric LoRA for Token-Entropy-Guided Unlearning of LLMs.pdf](../docs/papers/【173】ALTER- Asymmetric LoRA for Token-Entropy-Guided Unlearning of LLMs.pdf)。GitHub `MastrOrigami/ALTER` 仅空 README（`@f664526`）。
+
+**原文未提供可复现配置。** 无官方代码、无 Hydra/脚本、附录 A–G（IHL 闭式等）不在公开 arXiv；expert 数、LoRA 作用模块、Tsallis `q`、seed、Llama3-8B 的 HF ID、GPT-4o 流畅度协议均未钉死。正文只出现部分旋钮（η_B=1e-3，η_A=1e-5，β=γ=1.0，λ=0.01，batch=4，epoch=3，Sq 阈值 1.2，τ=0.8/0.01，表头 LoRA r=8）。本仓库 YAML 是**按正文推定**，本地跑数必须标「非论文配置复现」，**不能**写成官方数字或论文配置复现。
 
 ## 协议（论文）
 
 - WMDP：Zephyr-7B、Llama3-8B；forget = Bio/Cyber 选择题准确率↓，retain = 全量 MMLU↑；另报 GPT-4o Flu-mean↑ / Flu-var↓（协议未公开 → 流畅度格子本仓库标未复现）。
 - TOFU：Llama2-7B、Llama3-8B，1%/5%/10%；主结果在 **Figure 4**（无数值表）。
 - HarryPotter / MUSE-HP：Llama-2-7B；BLEU、ROUGE-L、ASG↓，MMLU↑。OpenUnlearning MUSE 指标与此**分列**。
-- 配置：η_B=1e-3，η_A=1e-5，β=γ=1.0，λ=0.01，batch=4，epoch=3；高熵阈值 Sq>1.2，τ_high=0.8，τ_low=0.01；推理条件路由，不要 merge LoRA 后再评。
-- 硬件：论文 H800 80GB。
+- 推理：条件路由，不要 merge LoRA 后再评。硬件：论文 H800 80GB。
 
 ## 原论文结果
 
@@ -69,13 +70,13 @@ Zephyr-7B：
 
 无数值表，见原文 Figure 4。定性：AsymLoRA/ALTER 在 1%/5%/10% 上接近 Retain 的 utility，且 forget quality 接近完全遗忘。实测不要填论文图上的目测数字。
 
-公开可跑：WMDP-Cyber。Bio forget corpus 未齐则 Bio 训练写未复现。流畅度（GPT-4o）未复现。Llama3-8B 的 HF ID 须写入 notes。
+公开可跑：WMDP-Cyber。Bio forget corpus 未齐则 Bio 训练写未复现。流畅度（GPT-4o）未复现。Llama3-8B 的 HF ID 须写入 notes。任何实测行的 note 须含「原文无完整复现配置」。
 
 ## 本仓库实测
 
 <!-- MEASURED:START -->
 | run | model | wmdp_bio | wmdp_cyber | mmlu | note | status |
 | --- | --- | --- | --- | --- | --- | --- |
-| 未复现 | zephyr-7b-beta |  |  |  | 推定实现；训练未跑 | 未复现 |
-| 未复现 | llama3-8b |  |  |  | 论文锚点 Bio 24.4 / Cyber 25.6 / MMLU 57.8；训练未跑 | 未复现 |
+| 未复现 | zephyr-7b-beta |  |  |  | 原文无完整复现配置；推定实现；论文 Cyber 24.0 / MMLU 56.4 / Bio 24.4；训练未跑 | 未复现 |
+| 未复现 | llama3-8b |  |  |  | 原文无完整复现配置；推定实现；论文 Bio 24.4 / Cyber 25.6 / MMLU 57.8；训练未跑 | 未复现 |
 <!-- MEASURED:END -->

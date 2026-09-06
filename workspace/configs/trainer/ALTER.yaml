@@ -18,7 +18,7 @@ method_args:
   lambda_entropy: 0.01
   eta_a: 1.0e-5
   eta_b: 1.0e-3
-  reconstruction_note: paper-appendix-missing
+  reconstruction_note: 原文无完整复现配置（无官方代码、附录闭式未公开）；本 YAML 为正文推定
 
 args:
   per_device_train_batch_size: 4

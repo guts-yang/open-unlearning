@@ -1,8 +1,8 @@
 # ALTER 远程训练（推定实现）
 
-官方仓库无代码。IHL 闭式、`q`、expert 数、LoRA 模块均来自论文正文 + 合理默认，标在 YAML `reconstruction_note`。
+**原文未提供可复现配置**：官方仓库只有空 README；公开 PDF 无完整超参表/附录闭式/可运行脚本。本地 `ALTER.yaml` 是按正文残缺旋钮推定的，跑数与写表都必须标「非论文配置复现」，不要和 Table 1/2 论文数字对齐验收。
 
-推理是 **条件路由**，不要 `merge_and_unload` 后再评。
+IHL 闭式、Tsallis `q`、expert 数、LoRA 模块均来自正文推断 + 默认，见 YAML `reconstruction_note`。推理是 **条件路由**，不要 `merge_and_unload` 后再评。
 
 ## 可先做（公开数据）
 

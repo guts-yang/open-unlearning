@@ -1,0 +1,61 @@
+---
+description: OpenUnlearning 顶级路径与隔离约束：官方目录只读实验，本地工作进 workspace/
+alwaysApply: true
+---
+
+# OpenUnlearning 顶级路径约束
+
+未明确说「合入主线」前：把官方树当只读实验平台。新代码、脚本、配置、笔记、运行产物一律进 `workspace/`。修官方 bug 可改对应文件，须标明这是 bugfix 而非新实验。
+
+## 官方路径（合入前勿往里塞实验文件）
+
+| 用途 | 路径 |
+|------|------|
+| 入口 | `src/train.py`, `src/eval.py` |
+| 实现 | `src/trainer/`, `src/data/`, `src/evals/`, `src/model/` |
+| Hydra | `configs/` |
+| 官方基线脚本 | `scripts/`（如 `tofu_unlearn.sh`） |
+| 社区调参包 | `community/methods/<Name>/`（README + `run.sh`，不放第二份 trainer） |
+| 框架默认输出 | `saves/${mode}/${task_name}` — **本地实验不用** |
+
+不要改 `configs/paths/default.yaml` 把全局输出改走，以免官方脚本失效。
+
+## 本地布局 `workspace/`
+
+```
+workspace/
+  scripts/   # 跑数、sweep、汇总；禁止塞进仓库根 scripts/
+  src/       # 未合入的 trainer / metric
+  configs/   # 实验 Hydra overlay
+  notes/     # 实验记录
+  saves/     # ckpt、EVAL/SUMMARY、hydra log；不提交
+```
+
+本地训练必须覆盖输出目录，例如：
+
+```bash
+python src/train.py --config-name=unlearn.yaml experiment=unlearn/tofu/default \
+  task_name=MY_RUN paths.output_dir=workspace/saves/unlearn/MY_RUN
+```
+
+- 可提交：`workspace` 下的代码、脚本、配置、笔记
+- 不提交：权重、评测 dump、日志；不要为了跟踪模型去放宽 `.gitignore`
+
+## 禁止
+
+- 在仓库根、`scripts/`、`community/`、`src/` 增加顺手的 `.sh` / notebook / 一次性分析脚本
+- 复制官方方法再改一份并行实现；先复用已有 trainer
+- 未合入就把 handler 注册进 `src/trainer/__init__.py` 等官方 registry
+
+```text
+❌ scripts/my_sweep.sh
+❌ community/methods/SpecDiff/spec_diff.py   # trainer 应先放 workspace/src
+❌ saves/unlearn/MY_RUN                     # 本地结果
+✅ workspace/scripts/my_sweep.sh
+✅ workspace/src/trainer/spec_diff.py
+✅ workspace/saves/unlearn/MY_RUN
+```
+
+## 合入主线（仅当用户明确要求）
+
+按官方结构：handler 进 `src/` 并注册 → YAML 进 `configs/` → 调参复现进 `community/methods/<Name>/run.sh`（不把 trainer 再抄一份）。

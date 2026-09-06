@@ -10,6 +10,12 @@ logs/
 hf_cache/
 cache*/
 saves*/
+workspace/saves/
+workspace/**/*.pt
+workspace/**/*.bin
+workspace/**/*.safetensors
+workspace/**/*.ckpt
+workspace/**/*.log
 notebooks/
 output*/
 wandb/
@@ -179,7 +185,9 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
-.cursor/
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 .codebuddy/
 .vscode/
 tests/

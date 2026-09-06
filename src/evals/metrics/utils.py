@@ -10,6 +10,12 @@ import torch
 from transformers import StoppingCriteria, StoppingCriteriaList, PreTrainedTokenizer
 from data.utils import IGNORE_INDEX
 import warnings
+from evals.metrics.harmonic import (  # noqa: F401
+    aggregate_method_scores,
+    harmonic_mean,
+    hm_2d,
+    hm_3d,
+)
 
 
 def dict_transpose(evals):

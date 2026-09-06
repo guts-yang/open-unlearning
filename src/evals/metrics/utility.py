@@ -1,19 +1,42 @@
 import torch
 import numpy as np
-import scipy as sc
 from tqdm import tqdm
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 from evals.metrics.utils import aggregate_to_1D
+from evals.metrics.harmonic import harmonic_mean, hm_2d, hm_3d
 from evals.metrics.base import unlearning_metric
+
+
+def _precompute_agg_values(kwargs):
+    return [result["agg_value"] for _, result in kwargs["pre_compute"].items()]
 
 
 @unlearning_metric(name="hm_aggregate")
 def hm_aggregate(model, **kwargs):
-    values = [result["agg_value"] for _, result in kwargs["pre_compute"].items()]
-    return {"agg_value": sc.stats.hmean(values)}
+    """Harmonic mean of precomputed metric ``agg_value``s (any arity).
+
+    Optional yaml ``n_terms`` (2 or 3) enforces the paper's 2D / 3D HM.
+    """
+    values = _precompute_agg_values(kwargs)
+    n_terms = kwargs.get("n_terms")
+    return {"agg_value": harmonic_mean(values, n=n_terms)}
+
+
+@unlearning_metric(name="hm_2d")
+def hm_2d_aggregate(model, **kwargs):
+    """Two-term HM, e.g. Table 6 Agg = HM(Mem, Utility) or Robustness = HM(R, Q)."""
+    a, b = _precompute_agg_values(kwargs)
+    return {"agg_value": hm_2d(a, b)}
+
+
+@unlearning_metric(name="hm_3d")
+def hm_3d_aggregate(model, **kwargs):
+    """Three-term HM, e.g. Table 3 Agg = HM(Mem, Priv, Utility)."""
+    a, b, c = _precompute_agg_values(kwargs)
+    return {"agg_value": hm_3d(a, b, c)}
 
 
 @unlearning_metric(name="classifier_prob")

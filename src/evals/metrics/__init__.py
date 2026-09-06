@@ -20,6 +20,8 @@ from evals.metrics.mia import (
 )
 from evals.metrics.utility import (
     hm_aggregate,
+    hm_2d_aggregate,
+    hm_3d_aggregate,
     classifier_prob,
 )
 
@@ -58,6 +60,8 @@ _register_metric(rouge)
 _register_metric(truth_ratio)
 _register_metric(ks_test)
 _register_metric(hm_aggregate)
+_register_metric(hm_2d_aggregate)
+_register_metric(hm_3d_aggregate)
 _register_metric(privleak)
 _register_metric(rel_diff)
 _register_metric(exact_memorization)

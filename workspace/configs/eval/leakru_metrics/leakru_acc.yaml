@@ -1,0 +1,20 @@
+# @package eval.leakru.metrics.leakru_acc
+defaults:
+  - ../../leakru_datasets@datasets: leakru_mquake
+  - ../../collator@collators: DataCollatorForSupervisedDatasetwithIndex
+  - ../../generation@generation_args: default
+
+handler: leakru_acc
+batch_size: ${eval.leakru.batch_size}
+
+datasets:
+  LeakRU_QA_mquake:
+    args:
+      data_path: ${eval.leakru.data_path}
+      subset: ${eval.leakru.subset}
+      per_type_limit: ${eval.leakru.per_type_limit}
+      predict_with_generate: true
+collators:
+  DataCollatorForSupervisedDataset:
+    args:
+      padding_side: left

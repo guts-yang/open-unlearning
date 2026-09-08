@@ -13,12 +13,16 @@ from open_unlearning_plugins.paths import (  # noqa: E402
     assert_workspace_output_dir,
     hydra_searchpath_override,
 )
-from open_unlearning_plugins.register import register_workspace_trainers  # noqa: E402
+from open_unlearning_plugins.register import (  # noqa: E402
+    register_workspace_evaluators,
+    register_workspace_trainers,
+)
 
 if not any(arg.startswith("hydra.searchpath") for arg in sys.argv[1:]):
     sys.argv.append(hydra_searchpath_override())
 
 register_workspace_trainers()
+register_workspace_evaluators()
 
 import hydra  # noqa: E402
 from omegaconf import DictConfig  # noqa: E402

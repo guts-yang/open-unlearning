@@ -1,0 +1,8 @@
+LeakRU_QA_mquake:
+  handler: LeakRUDataset
+  args:
+    subset: mquake
+    question_key: "question"
+    answer_key: "answer"
+    max_length: 512
+    predict_with_generate: true

@@ -47,3 +47,25 @@ def register_workspace_trainers(names: Sequence[str] | None = None) -> list[str]
 
 def registered_handler_names() -> Iterable[str]:
     return [cls.__name__ for cls in _load_plugin_trainers()]
+
+
+def register_workspace_evaluators() -> list[str]:
+    """Register LeakRU evaluator, metrics, and dataset on official registries."""
+    import data as data_mod
+    import evals as evals_mod
+    import evals.metrics as metrics_mod
+    from open_unlearning_plugins.leakru.data import LeakRUDataset
+    from open_unlearning_plugins.leakru.evaluator import LeakRUEvaluator
+    from open_unlearning_plugins.leakru.metrics import leakru_acc, leakru_fq, leakru_rr
+
+    evals_mod._register_evaluator(LeakRUEvaluator)
+    data_mod._register_data(LeakRUDataset)
+    for metric in (leakru_acc, leakru_fq, leakru_rr):
+        metrics_mod._register_metric(metric)
+    return [
+        "LeakRUEvaluator",
+        "LeakRUDataset",
+        "leakru_acc",
+        "leakru_fq",
+        "leakru_rr",
+    ]

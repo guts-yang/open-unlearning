@@ -1,0 +1,16 @@
+# @package eval.leakru.metrics.leakru_fq
+defaults:
+  - .@pre_compute.leakru_acc: leakru_acc
+
+reference_logs:
+  pretrained_model_logs:
+    path: ${eval.leakru.pretrained_logs_path}
+    include:
+      leakru_acc:
+        access_key: pretrained
+
+pre_compute:
+  leakru_acc:
+    access_key: unlearn
+
+handler: leakru_fq

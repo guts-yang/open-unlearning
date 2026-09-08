@@ -1,0 +1,18 @@
+# @package eval.leakru
+# NOTE: the above line is not a comment, but sets the package for config.
+
+defaults:
+  - leakru_metrics:
+    - leakru_acc
+    - leakru_fq
+    - leakru_rr
+
+handler: LeakRUEvaluator
+output_dir: ${paths.output_dir}
+metrics: {}
+overwrite: false
+pretrained_logs_path: null
+data_path: null
+subset: mquake
+per_type_limit: null
+batch_size: 8

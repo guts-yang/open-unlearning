@@ -4,6 +4,6 @@ defaults:
 handler: DrSimNPO
 method_args:
   forget_dro: true
-  beta_dv_forget: 1.0
+  beta_dv_forget: 2.0
   retain_dro: false
   beta_dv_retain: 1.0

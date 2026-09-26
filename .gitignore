@@ -191,5 +191,7 @@ cython_debug/
 .codebuddy/
 .vscode/
 tests/
-!workspace/tests/
-!workspace/tests/**
+workspace/tests/
+# Machine-local runners (AutoDL paths, handoffs); not for upload
+workspace/scripts/local/*
+!workspace/scripts/local/.gitkeep

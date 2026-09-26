@@ -148,6 +148,7 @@ def wrap_linear_modules(
         parent_name, _, child = name.rpartition(".")
         parent = model if parent_name == "" else model.get_submodule(parent_name)
         new_mod = AsymLoRALinear(module, **asym_kwargs)
+        new_mod.base.requires_grad_(False)
         setattr(parent, child, new_mod)
         wrapped.append(new_mod)
     return wrapped

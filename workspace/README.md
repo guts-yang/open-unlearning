@@ -13,9 +13,14 @@
 | `saves/` | checkpoint、评测 JSON、hydra 日志（不入库） |
 
 ```bash
+# 单测在 workspace/tests/（本地跑，不入库）
 PYTHONPATH=src:workspace/src python -m pytest workspace/tests -q
+
 python workspace/scripts/train.py experiment=unlearn/blade_tofu01_smoke \
   paths.output_dir=workspace/saves/unlearn/blade_tofu01_smoke
+
+# 本机跑数脚本在 workspace/scripts/local/（AutoDL 路径，不入库）
+bash workspace/scripts/local/run_simnpo_baldro.sh
 ```
 
 训练必须覆盖 `paths.output_dir` 到 `workspace/saves/`。手册从 `workspace/docs/00_overview.md` 读起（BLADE → GROM → BalDRO → ALTER）。

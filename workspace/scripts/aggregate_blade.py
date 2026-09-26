@@ -124,26 +124,39 @@ def _empty_grid() -> list[dict]:
     return rows
 
 
+def _fmt(value):
+    if value is None:
+        return "null"
+    if isinstance(value, float):
+        return f"{value:.4f}"
+    return value
+
+
+def _fill_row(row: dict, measured: dict, run: str, seed: str) -> None:
+    row["run"] = run
+    row["seed"] = seed
+    for key in ("MU", "Prob", "RG", "FQ", "HM_paper"):
+        if key not in measured:
+            continue
+        row[key] = _fmt(measured[key])
+    row["status"] = "实测"
+
+
 def _apply_measured(rows: list[dict], split: str, measured: dict, run: str, seed: str) -> None:
+    # Prefer official seed 42 when multiple runs exist for the same split.
     for row in rows:
-        if row["split"] == split and row["status"] == "未复现":
-            row["run"] = run
-            row["seed"] = seed
-            for key in ("MU", "Prob", "RG", "FQ", "HM_paper"):
-                if measured.get(key) not in (None, ""):
-                    row[key] = measured[key]
-            row["status"] = "实测"
+        if row["split"] != split:
+            continue
+        if row["status"] == "未复现":
+            _fill_row(row, measured, run, seed)
             return
+        if seed == "42" and str(row.get("seed")) != "42":
+            _fill_row(row, measured, run, seed)
+            return
+        return
     extra = {h: "" for h in BLADE_HEADERS}
-    extra.update(
-        {
-            "run": run,
-            "split": split or "",
-            "seed": seed,
-            "status": "实测",
-            **{k: measured.get(k, "") for k in ("MU", "Prob", "RG", "FQ", "HM_paper")},
-        }
-    )
+    extra.update({"split": split or "", "HM_paper_ref": ""})
+    _fill_row(extra, measured, run, seed)
     rows.append(extra)
 
 
@@ -162,22 +175,42 @@ def main():
     args = parser.parse_args()
     rows = _empty_grid()
     if args.saves_root.exists():
-        for summary in sorted(args.saves_root.glob("**/TOFU_EVAL.json")):
+        tofu_evals = [
+            p
+            for p in sorted(args.saves_root.glob("**/TOFU_EVAL.json"))
+            if "smoke" not in str(p).lower()
+        ]
+        # Process non-42 first, then 42 so official seed overwrites the grid slot.
+        tofu_evals.sort(key=lambda p: 1 if infer_seed(p) == "42" else 0)
+        for summary in tofu_evals:
             metrics = load_tofu_metrics(summary)
+            split = infer_split(summary) or ""
+            if not split:
+                continue
+            rel = summary
+            try:
+                rel = summary.resolve().relative_to(Path.cwd().resolve())
+            except ValueError:
+                pass
             _apply_measured(
                 rows,
-                infer_split(summary) or "",
+                split,
                 metrics,
-                str(summary.parent),
+                str(rel),
                 infer_seed(summary),
             )
         for summary in sorted(args.saves_root.glob("**/MUSE_SUMMARY.json")):
+            if "smoke" in str(summary).lower():
+                continue
             metrics = load_muse_metrics(summary)
+            split = infer_split(summary) or ""
+            if not split:
+                continue
             _apply_measured(
                 rows,
-                infer_split(summary) or "",
+                split,
                 metrics,
-                str(summary.parent),
+                str(summary),
                 infer_seed(summary),
             )
     replace_measured_section(args.out, BLADE_HEADERS, rows)

@@ -108,8 +108,8 @@ News 上 PDU HM 0.577 高于 BLADE 0.544。
 <!-- MEASURED:START -->
 | run | split | seed | MU | Prob | RG | FQ | HM_paper | HM_paper_ref | status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 未复现 | TOFU-1B-01 |  |  |  |  |  |  | 0.808 | 未复现 |
-| 未复现 | TOFU-1B-05 |  |  |  |  |  |  | 0.800 | 未复现 |
+| workspace/saves/unlearn/blade_tofu_1b_01_s42/checkpoint-0/evals/TOFU_EVAL.json | TOFU-1B-01 | 42 | 0.6019 | 0.0013 | 0.0381 | 0.0541 | 0.8103 | 0.808 | 实测 |
+| workspace/saves/unlearn/blade_tofu_1b_05_s42/checkpoint-0/evals/TOFU_EVAL.json | TOFU-1B-05 | 42 | 0.5998 | 0.0167 | 0.0517 | 0.0829 | 0.8024 | 0.800 | 实测 |
 | 未复现 | TOFU-1B-10 |  |  |  |  |  |  | 0.803 | 未复现 |
 | 未复现 | TOFU-3B-01 |  |  |  |  |  |  | 0.846 | 未复现 |
 | 未复现 | TOFU-3B-05 |  |  |  |  |  |  | 0.842 | 未复现 |

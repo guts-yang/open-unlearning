@@ -1,6 +1,4 @@
-# 实验准备对照（2026-09-06 本机盘点）
-
-对照 `workspace/docs/01–05` 与 `docs/zh/reproduce-prep.md`。已就绪项不再下载、不再重装。
+# 实验准备对照（2026-09-26）
 
 每个新 shell：
 
@@ -10,54 +8,61 @@ source /root/autodl-tmp/envs/unlearning/bin/activate
 cd /usr/local/open-unlearning
 ```
 
-`workspace/saves` → `/root/autodl-tmp/saves/workspace`（已建软链）。
+`workspace/saves` → `/root/autodl-tmp/saves/workspace`。
 
-## 跳过（已就绪）
+## 本机
 
-| 项 | 位置 / 事实 |
+| 项 | 事实 |
 |---|---|
-| Python 环境 | `/root/autodl-tmp/envs/unlearning`：torch 2.8.0+cu128、transformers 4.51.3、flash-attn 2.8.3、lm-eval 0.4.11；**不要** conda create / 不要用 miniconda base |
-| HF 镜像与缓存 | `env_hf.sh`：`HF_HOME=/root/autodl-tmp/huggingface`，`HF_ENDPOINT=https://hf-mirror.com` |
-| peft 0.14.0 | 已装进上述 venv（手册要求，原先缺） |
-| 插件单测环境 | `PYTHONPATH=src:workspace/src python -m pytest workspace/tests -q`：**10 passed / 2 failed**（见下，不挡 BLADE 1B） |
-| TOFU 数据 | Hub `locuslab/TOFU` |
-| MUSE 数据 | Hub `muse-bench/MUSE-{Books,News}` |
-| WMDP 评测 + MMLU | Hub `cais/wmdp`、`cais/mmlu` |
-| WMDP Cyber 训练语料 | `data/wmdp/wmdp-corpora/{cyber-forget,cyber-retain}-corpus.jsonl`（仓库 `data/wmdp` 已软链数据盘） |
-| BLADE TOFU 1B 权重 | `open-unlearning/tofu_Llama-3.2-1B-Instruct_full`（2.4G） |
-| MUSE 目标权重 | `muse-bench/MUSE-{Books,News}_target`（各 26G） |
-| ALTER Zephyr | `HuggingFaceH4/zephyr-7b-beta`（27G） |
-| TOFU retain 评测日志 | `/root/autodl-tmp/saves/eval/` 已有 1B/3B/Llama-2-7b-chat 的 retain90/95/99 与 full 的 `TOFU_EVAL.json`。**不要**再跑 `setup_data.py --eval_logs` |
-| 仓库副本 | 只此一份 `/usr/local/open-unlearning` |
+| GPU | NVIDIA H20 96GB × 1 |
+| 数据盘 | `/root/autodl-tmp` ~93G 可用（54% used） |
+| Python | `/root/autodl-tmp/envs/unlearning`：torch 2.4.1+cu121，transformers 4.51.3 |
+| H20 约束 | **fp32 + eager**；须 `trainer.args.bf16=false bf16_full_eval=false`，否则 7B ROUGE generate SIGFPE |
+| HF | `env_hf.sh` → `HF_HOME=/root/autodl-tmp/huggingface` |
+| Retain logs | `/usr/local/open-unlearning/saves/eval/`（7B/1B retain99 等，~39MB） |
+| 插件单测 | 本地跑：`PYTHONPATH=src:workspace/src python -m pytest workspace/tests -q`（**不入库**） |
 
-TOFU FQ 评测时 CLI 传绝对路径，例如 forget01：
+## 已完成（可跳过）
 
-`eval.tofu.retain_logs_path=/root/autodl-tmp/saves/eval/tofu_Llama-3.2-1B-Instruct_retain99/TOFU_EVAL.json`
+| Task | 关键指标 |
+|------|---------|
+| `blade_tofu_1b_01_s42` | HM **0.810** |
+| `blade_tofu_1b_05_s42` | HM **0.802** |
+| `grom_tofu05` | `grom_edit.json`（无 TOFU eval） |
+| `baldro_npo_dv_tofu01` | FQ **0.766**, MU **0.606** (ckpt-10) |
+| `baldro_npo_g_tofu01` | FQ **0.579**, MU **0.586** (ckpt-10) |
 
-（forget05→retain95，forget10→retain90。）
+BalDRO 7B checkpoint 权重已删（留 eval JSON）；BLADE 权重在 run 根目录 `model.safetensors`。
 
-## 未做 / 阻塞
+## 下一步：SimNPO + BalDRO
 
-| 项 | 状态 | 何时才需要 |
-|---|---|---|
-| **GPU** | 当前 `nvidia-smi` 空、`torch.cuda.is_available()==False` | **冒烟与全量训练的硬阻塞**；AutoDL 开机挂卡后再跑 |
-| BLADE TOFU 3B 权重 | Hub 无 `tofu_Llama-3.2-3B-Instruct_full` | 1B 停一次验收后再下 |
-| BalDRO Llama-2-7B 权重 | 无 `tofu_Llama-2-7b-chat-hf_full` | BLADE 停后再下 |
-| ALTER Llama3-8B | 论文未钉 ID，本地无 Meta-Llama-3-8B | ALTER 阶段再定 ID |
-| `NousResearch/Llama-2-7b-hf` | Hub 目录仅 ~2.3M，权重不完整 | BLADE MUSE 用的是 `MUSE-*_target`，先不补 |
-| WMDP Bio forget jsonl | `wmdp-corpora_jsonl/` 无 `bio-forget-corpus.jsonl` | 按手册：Bio 训练格子写「未复现」 |
-| `setup_data.py --wmdp` | Cyber+retain 已在，跳过整包重下 | — |
-| 官方 `saves/`、仓库内第二份 HF 缓存 | 不要建 | 产物只走 `workspace/saves` 软链 |
+```bash
+bash workspace/scripts/local/run_simnpo_baldro.sh
+```
 
-## 单测失败（不改官方树；不挡 BLADE 1B）
+日志：`workspace/saves/unlearn/_logs/simnpo_baldro.log`。脚本会清掉未完成的 partial run、带上 `retain_logs_path` 自动算 FQ。
 
-- `test_asym_lora_freeze_base_and_train_adapters`：`wrap_linear_modules` 未 `requires_grad_(False)` 冻结 `base`。ALTER 开训前再修。
-- `test_dv_large_beta_near_mean`：`beta_dv=1e6` 在 float32 下 logsumexp 均值偏差约 0.02。论文默认 `beta_dv_forget=2.0`，BalDRO 开训前再核。
+完成后可续跑 forget10 轮：
 
-## 下一步（挂卡后，手册顺序）
+```bash
+RESUME_FROM=forget10 bash workspace/scripts/local/run_round_robin.sh
+```
 
-1. 冒烟：`python workspace/scripts/train.py experiment=unlearn/blade_tofu01_smoke task_name=blade_tofu01_smoke paths.output_dir=workspace/saves/unlearn/blade_tofu01_smoke`
-2. BLADE TOFU 1B 全量（seed 42 123 456 789 1024），YAML `unlearn/blade_tofu_1b_{01,05,10}`；评测带上 `retain_logs_path`
-3. 写 notes、停；确认后再 3B / MUSE / BalDRO / ALTER
+## 复现策略（round-robin）
 
-汇总 Markdown 仍全是「未复现」，符合「无实测 JSON 不填论文数字」。
+| Round | 方法顺序 |
+| --- | --- |
+| TOFU forget01 | BLADE 1B → BalDRO NPO-DV/G → **SimNPO+BalDRO DV/G** |
+| TOFU forget05 | BLADE 1B → GROM tofu05 |
+| TOFU forget10 | GROM tofu10 → BLADE 1B-10 |
+| MUSE / WMDP | 权重齐后 |
+
+## 工作区布局（上传 vs 本地）
+
+| 入库 | 不入库 |
+|------|--------|
+| `configs/`、`src/`、`results/`、`scripts/{train,eval,aggregate_*,run_grom}.py` | `workspace/tests/` |
+| `notes/prep_status.md` | `workspace/scripts/local/`（跑数、handoff、prefetch） |
+| SimNPO YAML 等实验配置 | `workspace/saves/`、权重、日志 |
+
+预取续跑：`python workspace/scripts/local/prefetch_assets.py`

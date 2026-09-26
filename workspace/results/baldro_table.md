@@ -85,8 +85,22 @@
 | run | split | method | FQ | MU | FQ_paper | MU_paper | status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 未复现 | TOFU-01 | NPO |  |  | 0.7659 | 0.5775 | 未复现 |
-| 未复现 | TOFU-01 | NPO+G |  |  | 0.9188 | 0.6126 | 未复现 |
-| 未复现 | TOFU-01 | NPO+DV |  |  | 0.9900 | 0.5815 | 未复现 |
+| workspace/saves/unlearn/baldro_npo_g_tofu01/checkpoint-0/evals | TOFU-01 | NPO+G |  | 0.6276969401677462 | 0.9188 | 0.6126 | 实测 |
+| workspace/saves/unlearn/baldro_npo_dv_tofu01/checkpoint-0/evals | TOFU-01 | NPO+DV |  | 0.6276969401677462 | 0.9900 | 0.5815 | 实测 |
 | 未复现 | TOFU-05 | NPO |  |  | 0.6284 |  | 未复现 |
 | 未复现 | TOFU-05 | NPO+DV |  |  | 0.9646 |  | 未复现 |
+| workspace/saves/unlearn/baldro_simnpo_dv_tofu01/checkpoint-0/evals | TOFU-01 | SimNPO+DV |  | 0.6276969401677462 | 0.5786 | 0.5917 | 实测 |
+| 未复现 | TOFU-01 | SimNPO+G |  |  | 0.5786 | 0.5651 | 未复现 |
+| workspace/saves/unlearn/baldro_npo_dv_tofu01/checkpoint-10/evals | TOFU-01 | NPO+DV | 0.7659314523482239 | 0.6064246990123185 |  |  | 实测 |
+| workspace/saves/unlearn/baldro_npo_dv_tofu01/checkpoint-2/evals | TOFU-01 | NPO+DV |  | 0.6146435332705501 |  |  | 实测 |
+| workspace/saves/unlearn/baldro_npo_dv_tofu01/checkpoint-4/evals | TOFU-01 | NPO+DV |  | 0.5999116937829211 |  |  | 实测 |
+| workspace/saves/unlearn/baldro_npo_dv_tofu01/checkpoint-6/evals | TOFU-01 | NPO+DV |  | 0.598813519805116 |  |  | 实测 |
+| workspace/saves/unlearn/baldro_npo_dv_tofu01/checkpoint-8/evals | TOFU-01 | NPO+DV |  | 0.6025626686037175 |  |  | 实测 |
+| workspace/saves/unlearn/baldro_npo_g_tofu01/checkpoint-10/evals | TOFU-01 | NPO+G | 0.5786001416508443 | 0.5858237811836555 |  |  | 实测 |
+| workspace/saves/unlearn/baldro_npo_g_tofu01/checkpoint-2/evals | TOFU-01 | NPO+G |  | 0.6207531792496547 |  |  | 实测 |
+| workspace/saves/unlearn/baldro_npo_g_tofu01/checkpoint-4/evals | TOFU-01 | NPO+G |  | 0.581535735433889 |  |  | 实测 |
+| workspace/saves/unlearn/baldro_npo_g_tofu01/checkpoint-6/evals | TOFU-01 | NPO+G |  | 0.573965826876621 |  |  | 实测 |
+| workspace/saves/unlearn/baldro_npo_g_tofu01/checkpoint-8/evals | TOFU-01 | NPO+G |  | 0.5801844231957501 |  |  | 实测 |
+| workspace/saves/unlearn/baldro_simnpo_dv_tofu01/checkpoint-2/evals | TOFU-01 | SimNPO+DV |  | 0.6130731253049051 |  |  | 实测 |
+| workspace/saves/unlearn/baldro_simnpo_dv_tofu01/checkpoint-4/evals | TOFU-01 | SimNPO+DV |  |  |  |  | 实测 |
 <!-- MEASURED:END -->

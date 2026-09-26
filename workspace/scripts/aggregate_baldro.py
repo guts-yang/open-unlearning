@@ -61,6 +61,22 @@ BALDRO_PLACEHOLDERS = [
         "FQ_paper": "0.9646",
         "status": "未复现",
     },
+    {
+        "run": "未复现",
+        "split": "TOFU-01",
+        "method": "SimNPO+DV",
+        "FQ_paper": "0.5786",
+        "MU_paper": "0.5917",
+        "status": "未复现",
+    },
+    {
+        "run": "未复现",
+        "split": "TOFU-01",
+        "method": "SimNPO+G",
+        "FQ_paper": "0.5786",
+        "MU_paper": "0.5651",
+        "status": "未复现",
+    },
 ]
 
 
@@ -84,6 +100,10 @@ def infer_split(path: Path) -> str | None:
 
 def infer_method(path: Path) -> str | None:
     text = str(path).lower()
+    if "simnpo_dv" in text or "drsimnpo" in text:
+        return "SimNPO+DV"
+    if "simnpo_g" in text or "groupsimnpo" in text:
+        return "SimNPO+G"
     if "npo_dv" in text or "npo+dv" in text or "drnpo" in text:
         return "NPO+DV"
     if "npo_g" in text or "npo+g" in text or "groupnpo" in text:
@@ -141,12 +161,15 @@ def main():
     args = parser.parse_args()
     rows = _empty_grid()
     if args.saves_root.exists():
-        for path in sorted(args.saves_root.glob("**/TOFU_EVAL.json")):
+        for path in sorted(args.saves_root.glob("baldro_*/**/TOFU_EVAL.json")):
             data = json.loads(path.read_text())
+            method = infer_method(path)
+            if not method:
+                continue
             _apply_measured(
                 rows,
                 infer_split(path) or "",
-                infer_method(path) or "",
+                method,
                 {"FQ": _agg(data, "forget_quality"), "MU": _agg(data, "model_utility")},
                 str(path.parent),
             )

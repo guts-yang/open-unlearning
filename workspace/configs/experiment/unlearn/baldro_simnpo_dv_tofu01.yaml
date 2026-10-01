@@ -12,11 +12,15 @@ defaults:
 model:
   model_args:
     pretrained_model_name_or_path: open-unlearning/tofu_Llama-2-7b-chat-hf_full
+    attn_implementation: eager
+    torch_dtype: float32
+  tokenizer_args:
+    pretrained_model_name_or_path: open-unlearning/tofu_Llama-2-7b-chat-hf_full
 
 forget_split: forget01
 retain_split: retain99
 holdout_split: holdout01
-retain_logs_path: null
+retain_logs_path: /root/autodl-tmp/saves/eval/tofu_Llama-2-7b-chat-hf_retain99/TOFU_EVAL.json
 question_key: "question"
 
 eval:
@@ -58,6 +62,10 @@ trainer:
     num_train_epochs: 10
     eval_strategy: epoch
     seed: 0
+    # H20: bf16 generate hits SIGFPE; train and eval in fp32 + eager.
+    bf16: false
+    bf16_full_eval: false
+    gradient_checkpointing: true
 
 task_name: baldro_simnpo_dv_tofu01
 paths:

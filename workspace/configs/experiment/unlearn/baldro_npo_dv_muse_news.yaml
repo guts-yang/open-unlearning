@@ -1,0 +1,74 @@
+# @package _global_
+# NPO + BalDRO-DV  MUSE News  Llama-2-7B target  seed 0
+# lr / batch follow OpenUnlearning MUSE default (seq 2048). beta_dv=2.0.
+# Paper does not pin the chosen MUSE hyperparameter cell.
+
+defaults:
+  - override /model: Llama-2-7b-hf
+  - override /trainer: DrNPO
+  - override /data: unlearn
+  - override /data/datasets@data.forget: MUSE_forget
+  - override /data/datasets@data.retain: MUSE_retain
+  - override /eval: muse
+
+data_split: News
+forget_split: forget
+retain_split: retain1
+retain_logs_path: /root/autodl-tmp/saves/eval/muse_Llama-2-7b-hf_News_retrain/MUSE_EVAL.json
+
+model:
+  model_args:
+    pretrained_model_name_or_path: muse-bench/MUSE-${data_split}_target
+    attn_implementation: eager
+    torch_dtype: float32
+  tokenizer_args:
+    pretrained_model_name_or_path: muse-bench/MUSE-${data_split}_target
+
+data:
+  anchor: forget
+  forget:
+    MUSE_forget:
+      args:
+        hf_args:
+          split: ${forget_split}
+          path: muse-bench/MUSE-${data_split}
+        max_length: 2048
+  retain:
+    MUSE_retain:
+      args:
+        hf_args:
+          path: muse-bench/MUSE-${data_split}
+          split: ${retain_split}
+        max_length: 2048
+
+eval:
+  muse:
+    data_split: ${data_split}
+    retain_logs_path: ${retain_logs_path}
+    overwrite: true
+
+trainer:
+  method_args:
+    beta: 0.1
+    alpha: 1.0
+    gamma: 1.0
+    retain_loss_type: NLL
+    forget_dro: true
+    retain_dro: false
+    beta_dv_forget: 2.0
+    beta_dv_retain: 1.0
+  args:
+    learning_rate: 1.0e-5
+    lr_scheduler_type: constant
+    per_device_train_batch_size: 4
+    gradient_accumulation_steps: 8
+    num_train_epochs: 10
+    eval_strategy: epoch
+    seed: 0
+    bf16: false
+    bf16_full_eval: false
+    gradient_checkpointing: true
+
+task_name: baldro_npo_dv_muse_news
+paths:
+  output_dir: workspace/saves/unlearn/${task_name}

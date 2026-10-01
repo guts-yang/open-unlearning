@@ -1,9 +1,9 @@
 # @package _global_
-# NPO + BalDRO-DV  TOFU forget01  Llama-2-7B  paper-like: beta_dv=2.0
+# SimNPO + BalDRO-DV  TOFU forget05  Llama-2-7B  seed 0  beta_dv=2.0
 
 defaults:
   - override /model: Llama-2-7b-chat-hf
-  - override /trainer: DrNPO
+  - override /trainer: DrSimNPO
   - override /data: unlearn
   - override /data/datasets@data.forget: TOFU_QA_forget
   - override /data/datasets@data.retain: TOFU_QA_retain
@@ -17,10 +17,10 @@ model:
   tokenizer_args:
     pretrained_model_name_or_path: open-unlearning/tofu_Llama-2-7b-chat-hf_full
 
-forget_split: forget01
-retain_split: retain99
-holdout_split: holdout01
-retain_logs_path: /root/autodl-tmp/saves/eval/tofu_Llama-2-7b-chat-hf_retain99/TOFU_EVAL.json
+forget_split: forget05
+retain_split: retain95
+holdout_split: holdout05
+retain_logs_path: /root/autodl-tmp/saves/eval/tofu_Llama-2-7b-chat-hf_retain95/TOFU_EVAL.json
 question_key: "question"
 
 eval:
@@ -46,9 +46,10 @@ data:
 
 trainer:
   method_args:
-    beta: 0.1
+    delta: 0.0
+    beta: 4.5
     alpha: 1.0
-    gamma: 1.0
+    gamma: 0.125
     retain_loss_type: NLL
     forget_dro: true
     retain_dro: false
@@ -61,11 +62,10 @@ trainer:
     num_train_epochs: 10
     eval_strategy: epoch
     seed: 0
-    # H20: bf16 generate hits SIGFPE; train and eval in fp32 + eager.
     bf16: false
     bf16_full_eval: false
     gradient_checkpointing: true
 
-task_name: baldro_npo_dv_tofu01
+task_name: baldro_simnpo_dv_tofu05
 paths:
   output_dir: workspace/saves/unlearn/${task_name}
